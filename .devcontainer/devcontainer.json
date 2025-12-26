@@ -1,0 +1,27 @@
+{
+  "name": "Kotlin with AI DevContainer",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "fwcd.kotlin",
+        "vscjava.vscode-gradle"
+      ]
+    },
+    "cursor": {
+      "extensions": [
+        "fwcd.kotlin",
+        "vscjava.vscode-gradle"
+      ]
+    }
+  },
+  "remoteUser": "root",
+  "postCreateCommand": "if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then gradle wrapper --gradle-version 9.2.1; fi && java -version && ./gradlew --version"
+}
+
