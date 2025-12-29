@@ -7,6 +7,7 @@ This project is designed to learn AI LLM-assisted programming with a focus on Ko
 - Kotlin (latest LTS version)
 - Gradle (Kotlin DSL)
 - Netty (for networking)
+- Protocol Buffers (for serialization)
 - JVM: Temurin Java 21
 - Testing framework: JUnit 5
 
@@ -38,6 +39,14 @@ This project is designed to learn AI LLM-assisted programming with a focus on Ko
 
 ## Domain Context
 This is a low-latency, high-traffic data store designed to handle many concurrent connections. The system must support distributed in-memory caching with cross-datacenter replication capabilities.
+
+### Serialization Strategy
+- **Protocol Buffers (protobuf)** for all cache value serialization
+  - Rationale: Multi-language client support, high performance, compact binary format, schema evolution
+  - Cache keys: String-based (UTF-8 encoded)
+  - Cache values: Generic type `T` internally, serialized to protobuf for network transmission
+  - Benefits: Type safety across language boundaries, backward/forward compatibility, industry-standard for distributed systems
+  - Future: Serialization layer will be added in the infrastructure package when implementing network protocol
 
 ## Important Constraints
 - High performance is important
