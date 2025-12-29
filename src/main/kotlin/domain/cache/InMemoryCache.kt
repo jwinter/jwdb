@@ -27,6 +27,11 @@ class InMemoryCache<T>(
     private val hits = AtomicLong(0)
     private val misses = AtomicLong(0)
     private val evictions = AtomicLong(0)
+    private val putCount = AtomicLong(0)
+    private val deleteCount = AtomicLong(0)
+    private val clearCount = AtomicLong(0)
+    private val evictionsByPolicy = ConcurrentHashMap<EvictionPolicy, AtomicLong>()
+    private val createdAt = System.currentTimeMillis()
 
     override fun get(key: CacheKey): CacheResult<T> {
         val value = storage[key]
@@ -62,6 +67,7 @@ class InMemoryCache<T>(
 
             storage[key] = value
             updateAccessOrder(key)
+            putCount.incrementAndGet()
             WriteResult.Success
         } catch (e: Exception) {
             WriteResult.Failure("Failed to put value in cache", e)
@@ -72,6 +78,7 @@ class InMemoryCache<T>(
         return try {
             storage.remove(key)
             accessOrder.remove(key)
+            deleteCount.incrementAndGet()
             WriteResult.Success
         } catch (e: Exception) {
             WriteResult.Failure("Failed to delete value from cache", e)
@@ -87,6 +94,7 @@ class InMemoryCache<T>(
         return try {
             storage.clear()
             accessOrder.clear()
+            clearCount.incrementAndGet()
             WriteResult.Success
         } catch (e: Exception) {
             WriteResult.Failure("Failed to clear cache", e)
@@ -106,7 +114,56 @@ class InMemoryCache<T>(
             misses = misses.get(),
             evictions = evictions.get(),
             size = storage.size.toLong(),
+            putCount = putCount.get(),
+            deleteCount = deleteCount.get(),
+            clearCount = clearCount.get(),
+            evictionsByPolicy = evictionsByPolicy.mapValues { it.value.get() },
+            createdAt = createdAt,
         )
+
+    /**
+     * Resets all statistics counters to zero.
+     * Cache contents are not affected.
+     */
+    fun resetStats() {
+        hits.set(0)
+        misses.set(0)
+        evictions.set(0)
+        putCount.set(0)
+        deleteCount.set(0)
+        clearCount.set(0)
+        evictionsByPolicy.clear()
+    }
+
+    /**
+     * Gets formatted statistics output for logging/monitoring.
+     */
+    fun getStatsFormatted(): String {
+        val stats = getStats()
+        val uptime = System.currentTimeMillis() - stats.createdAt
+        val uptimeSeconds = uptime / 1000
+
+        return buildString {
+            appendLine("Cache Statistics:")
+            appendLine("  Size: ${String.format("%,d", stats.size)} entries")
+            appendLine("  Hits: ${String.format("%,d", stats.hits)}")
+            appendLine("  Misses: ${String.format("%,d", stats.misses)}")
+            appendLine("  Hit Rate: ${String.format("%.2f%%", stats.hitRate * 100)}")
+            appendLine("  Operations:")
+            appendLine("    Puts: ${String.format("%,d", stats.putCount)}")
+            appendLine("    Deletes: ${String.format("%,d", stats.deleteCount)}")
+            appendLine("    Clears: ${String.format("%,d", stats.clearCount)}")
+            appendLine("    Total: ${String.format("%,d", stats.totalOperations)}")
+            appendLine("  Evictions: ${String.format("%,d", stats.evictions)}")
+            if (stats.evictionsByPolicy.isNotEmpty()) {
+                appendLine("    By Policy:")
+                stats.evictionsByPolicy.forEach { (policy, count) ->
+                    appendLine("      $policy: ${String.format("%,d", count)}")
+                }
+            }
+            append("  Uptime: ${uptimeSeconds}s")
+        }
+    }
 
     /**
      * Removes expired entries from the cache.
@@ -143,6 +200,7 @@ class InMemoryCache<T>(
             EvictionPolicy.RANDOM -> evictRandom()
         }
         evictions.incrementAndGet()
+        evictionsByPolicy.computeIfAbsent(evictionPolicy) { AtomicLong(0) }.incrementAndGet()
     }
 
     private fun evictLRU() {
