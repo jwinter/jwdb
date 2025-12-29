@@ -10,6 +10,12 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js 24.12.0 LTS
+ENV NODE_VERSION=24.12.0
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install Gradle 9.2.1 (matches project's wrapper version)
 # This allows us to use 'gradle wrapper' to properly set up the wrapper
 ENV GRADLE_VERSION=9.2.1
@@ -21,6 +27,9 @@ RUN wget -q https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-b
     mv /opt/gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
     rm /tmp/gradle.zip && \
     chmod -R 755 ${GRADLE_HOME}
+
+# Install OpenSpec CLI globally
+RUN npm install -g @fission-ai/openspec@latest
 
 # Default command
 CMD ["/bin/bash"]
