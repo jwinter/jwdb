@@ -53,10 +53,18 @@ data class CacheStats(
     val misses: Long = 0L,
     val evictions: Long = 0L,
     val size: Long = 0L,
+    val putCount: Long = 0L,
+    val deleteCount: Long = 0L,
+    val clearCount: Long = 0L,
+    val evictionsByPolicy: Map<EvictionPolicy, Long> = emptyMap(),
+    val createdAt: Long = System.currentTimeMillis(),
 ) {
     val hitRate: Double
         get() {
             val total = hits + misses
             return if (total > 0) hits.toDouble() / total else 0.0
         }
+
+    val totalOperations: Long
+        get() = hits + misses + putCount + deleteCount + clearCount
 }
