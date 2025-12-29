@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @Tag("unit")
 class EnhancedCacheStatsTest {
@@ -117,5 +120,54 @@ class EnhancedCacheStatsTest {
 
         assertTrue(stats.createdAt >= before)
         assertTrue(stats.createdAt <= after)
+    }
+
+    @Test
+    fun `concurrent access to statistics should be thread-safe`() {
+        val cache = InMemoryCache<String>()
+        val threadCount = 10
+        val operationsPerThread = 100
+        val executor = Executors.newFixedThreadPool(threadCount)
+        val latch = CountDownLatch(threadCount)
+
+        // Launch multiple threads performing various cache operations concurrently
+        repeat(threadCount) { threadId ->
+            executor.submit {
+                try {
+                    repeat(operationsPerThread) { opId ->
+                        val key = CacheKey("thread-$threadId-key-$opId")
+                        val value = CacheValue("data-$opId")
+
+                        // Perform various operations
+                        cache.put(key, value)
+                        cache.get(key)
+                        cache.get(CacheKey("missing-$opId"))
+                        cache.delete(key)
+                    }
+                } finally {
+                    latch.countDown()
+                }
+            }
+        }
+
+        // Wait for all threads to complete
+        assertTrue(latch.await(10, TimeUnit.SECONDS), "Concurrent operations did not complete in time")
+        executor.shutdown()
+
+        // Verify that all operations were correctly counted
+        val stats = cache.getStats()
+
+        // Each thread does: operationsPerThread puts, gets (hit), gets (miss), deletes
+        val expectedPuts = (threadCount * operationsPerThread).toLong()
+        val expectedHits = (threadCount * operationsPerThread).toLong()
+        val expectedMisses = (threadCount * operationsPerThread).toLong()
+        val expectedDeletes = (threadCount * operationsPerThread).toLong()
+        val expectedTotal = expectedPuts + expectedHits + expectedMisses + expectedDeletes
+
+        assertEquals(expectedPuts, stats.putCount, "Put count mismatch")
+        assertEquals(expectedHits, stats.hits, "Hits count mismatch")
+        assertEquals(expectedMisses, stats.misses, "Misses count mismatch")
+        assertEquals(expectedDeletes, stats.deleteCount, "Delete count mismatch")
+        assertEquals(expectedTotal, stats.totalOperations, "Total operations mismatch")
     }
 }

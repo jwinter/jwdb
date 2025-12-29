@@ -26,9 +26,9 @@
 - [x] 4.3 Test clear operations increment clearCount
 - [x] 4.4 Test eviction tracking by policy type
 - [x] 4.5 Test resetStats() clears all counters
-- [ ] 4.6 Test concurrent access to statistics
+- [x] 4.6 Test concurrent access to statistics
 
 ## 5. Documentation
-- [ ] 5.1 Document all available statistics fields
-- [ ] 5.2 Add examples of monitoring cache stats
-- [ ] 5.3 Document when to use resetStats()
+- [x] 5.1 Document all available statistics fields
+- [x] 5.2 Add examples of monitoring cache stats
+- [x] 5.3 Document when to use resetStats()
