@@ -1,46 +1,46 @@
 ## ADDED Requirements
 
 ### Requirement: Test Classification Tags
-The project SHALL provide JUnit 5 tag annotations for classifying tests as small, medium, or large.
+The project SHALL provide JUnit 5 tag annotations for classifying tests as unit, integration, or e2e.
 
-#### Scenario: Developer creates a small test
+#### Scenario: Developer creates a unit test
 - **WHEN** a developer writes a fast, isolated unit test
-- **THEN** the test is annotated with `@SmallTest`
+- **THEN** the test is annotated with `@Tag("unit")`
 - **AND** the test has no external dependencies
-- **AND** the test executes quickly (< 100ms typically)
+- **AND** the test executes quickly
 
-#### Scenario: Developer creates a medium test
+#### Scenario: Developer creates an integration test
 - **WHEN** a developer writes an integration test with some dependencies
-- **THEN** the test is annotated with `@MediumTest`
+- **THEN** the test is annotated with `@Tag("integration")`
 - **AND** the test may use test doubles or limited external resources
-- **AND** the test execution time is moderate (100ms - 1s typically)
+- **AND** the test tests component interactions
 
-#### Scenario: Developer creates a large test
+#### Scenario: Developer creates an end-to-end test
 - **WHEN** a developer writes an end-to-end test with full system dependencies
-- **THEN** the test is annotated with `@LargeTest`
+- **THEN** the test is annotated with `@Tag("e2e")`
 - **AND** the test uses real external dependencies or full system setup
-- **AND** the test execution time may be longer (> 1s typically)
+- **AND** the test validates full workflows
 
 ### Requirement: Test Execution by Classification
 The project SHALL support running tests filtered by classification.
 
-#### Scenario: Developer runs small tests only
-- **WHEN** a developer runs `./gradlew testSmall` or equivalent
-- **THEN** only tests tagged with `@SmallTest` are executed
+#### Scenario: Developer runs unit tests only
+- **WHEN** a developer runs `./gradlew testUnit`
+- **THEN** only tests tagged with `@Tag("unit")` are executed
 - **AND** other tests are skipped
-- **AND** test results show only small test outcomes
+- **AND** test results show only unit test outcomes
 
-#### Scenario: Developer runs medium tests only
-- **WHEN** a developer runs `./gradlew testMedium` or equivalent
-- **THEN** only tests tagged with `@MediumTest` are executed
+#### Scenario: Developer runs integration tests only
+- **WHEN** a developer runs `./gradlew testIntegration`
+- **THEN** only tests tagged with `@Tag("integration")` are executed
 - **AND** other tests are skipped
-- **AND** test results show only medium test outcomes
+- **AND** test results show only integration test outcomes
 
-#### Scenario: Developer runs large tests only
-- **WHEN** a developer runs `./gradlew testLarge` or equivalent
-- **THEN** only tests tagged with `@LargeTest` are executed
+#### Scenario: Developer runs end-to-end tests only
+- **WHEN** a developer runs `./gradlew testE2e`
+- **THEN** only tests tagged with `@Tag("e2e")` are executed
 - **AND** other tests are skipped
-- **AND** test results show only large test outcomes
+- **AND** test results show only e2e test outcomes
 
 #### Scenario: Developer runs all tests
 - **WHEN** a developer runs `./gradlew test` or equivalent
@@ -52,8 +52,8 @@ The project SHALL provide documentation explaining when to use each test classif
 
 #### Scenario: Developer needs guidance on test classification
 - **WHEN** a developer reads the test classification documentation
-- **THEN** the documentation explains the criteria for small, medium, and large tests
+- **THEN** the documentation explains the criteria for unit, integration, and e2e tests
 - **AND** the documentation provides examples of each classification
-- **AND** the documentation explains execution time and dependency guidelines
+- **AND** the documentation explains dependency and scope guidelines
 - **AND** the documentation helps developers choose the appropriate classification
 

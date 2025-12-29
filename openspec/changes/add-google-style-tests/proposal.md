@@ -1,17 +1,17 @@
-# Change: Implement Google-Style Test Classification
+# Change: Implement Test Classification
 
-**Status: Draft** - Pending review after DevContainer work
+**Status: In Progress**
 
 ## Why
-The project specifies Google-style test classification (small, medium, large tests) in `openspec/project.md`, but this classification is not yet implemented in the codebase. We need to establish the structure, conventions, and tooling to support this testing strategy. This will help developers write appropriately scoped tests and enable selective test execution based on test size and dependencies.
+The project needs a clear test classification system to help developers write appropriately scoped tests and enable selective test execution. Using industry-standard unit/integration/e2e terminology makes the intent clear and aligns with common practice.
 
 ## What Changes
-- Create test classification structure and conventions
-- Add JUnit 5 tags for small, medium, and large tests
+- Create test classification structure using unit/integration/e2e tags
+- Add JUnit 5 tag-based filtering for unit, integration, and e2e tests
 - Configure Gradle to support running tests by classification
 - Create documentation explaining when to use each test type
 - Add examples of each test classification
-- Update Makefile (if exists) to support running tests by classification
+- Update Makefile to support running tests by classification
 
 ## Impact
 - Affected specs: New capability `test-classification` will be created

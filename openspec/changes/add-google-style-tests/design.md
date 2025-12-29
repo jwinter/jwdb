@@ -1,10 +1,10 @@
 ## Context
-The project already specifies Google-style test classification in `openspec/project.md`:
-- Small: Fast, isolated unit tests
-- Medium: Integration tests with some dependencies
-- Large: End-to-end tests with full system dependencies
+The project needs a clear test classification system. We're adopting industry-standard terminology:
+- Unit: Fast, isolated tests with no external dependencies
+- Integration: Tests with some dependencies or component interactions
+- E2E (End-to-End): Full system tests with all dependencies
 
-However, this classification is not yet implemented. We need to establish the structure, conventions, and tooling to make this practical.
+This is clearer and more semantically meaningful than Google's small/medium/large nomenclature.
 
 ## Goals / Non-Goals
 - Goals:
@@ -22,15 +22,19 @@ However, this classification is not yet implemented. We need to establish the st
 ## Decisions
 - Decision: Use JUnit 5 `@Tag` annotations for classification
   - Alternatives considered: Custom annotations, naming conventions, separate test directories
-  - Rationale: JUnit 5 tags are standard, well-supported by Gradle, and allow flexible test filtering. They're also discoverable and explicit.
+  - Rationale: JUnit 5 tags are standard, well-supported by Gradle, and allow flexible test filtering.
 
-- Decision: Create custom tag annotations (`@SmallTest`, `@MediumTest`, `@LargeTest`)
-  - Alternatives considered: Using string tags directly, using JUnit 5 built-in tags
-  - Rationale: Custom annotations provide type safety, better IDE support, and make the classification explicit and discoverable.
+- Decision: Use string tags directly (`@Tag("unit")`, `@Tag("integration")`, `@Tag("e2e")`)
+  - Alternatives considered: Custom wrapper annotations
+  - Rationale: Simpler, more direct, follows Google's approach. Custom annotations would be over-engineering for this use case.
+
+- Decision: Use unit/integration/e2e terminology instead of small/medium/large
+  - Alternatives considered: Google's small/medium/large nomenclature
+  - Rationale: Industry-standard terms that clearly communicate the test's purpose rather than just its size.
 
 - Decision: Configure Gradle with separate test tasks for each classification
   - Alternatives considered: Using Gradle test filtering flags, using test suites
-  - Rationale: Separate tasks (`testSmall`, `testMedium`, `testLarge`) are more discoverable and provide better integration with IDEs and CI/CD.
+  - Rationale: Separate tasks (`testUnit`, `testIntegration`, `testE2e`) are more discoverable and provide better integration with IDEs and CI/CD.
 
 - Decision: Default `test` task runs all tests
   - Alternatives considered: Default to small tests only

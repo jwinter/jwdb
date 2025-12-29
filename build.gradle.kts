@@ -25,3 +25,33 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks.register<Test>("testUnit") {
+    group = "verification"
+    description = "Runs unit tests (fast, isolated tests)"
+    testClassesDirs = tasks.test.get().testClassesDirs
+    classpath = tasks.test.get().classpath
+    useJUnitPlatform {
+        includeTags("unit")
+    }
+}
+
+tasks.register<Test>("testIntegration") {
+    group = "verification"
+    description = "Runs integration tests (tests with some dependencies)"
+    testClassesDirs = tasks.test.get().testClassesDirs
+    classpath = tasks.test.get().classpath
+    useJUnitPlatform {
+        includeTags("integration")
+    }
+}
+
+tasks.register<Test>("testE2e") {
+    group = "verification"
+    description = "Runs end-to-end tests (full system tests)"
+    testClassesDirs = tasks.test.get().testClassesDirs
+    classpath = tasks.test.get().classpath
+    useJUnitPlatform {
+        includeTags("e2e")
+    }
+}

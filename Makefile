@@ -1,4 +1,4 @@
-.PHONY: help build test clean format check docker-install colima-install colima-start colima-stop colima-status
+.PHONY: help build test test-unit test-integration test-e2e clean format check docker-install colima-install colima-start colima-stop colima-status
 .DEFAULT_GOAL := help
 
 ## help: Display available make targets
@@ -15,6 +15,18 @@ build:
 ## test: Run all tests
 test:
 	./gradlew test
+
+## test-unit: Run unit tests only
+test-unit:
+	./gradlew testUnit
+
+## test-integration: Run integration tests only
+test-integration:
+	./gradlew testIntegration
+
+## test-e2e: Run end-to-end tests only
+test-e2e:
+	./gradlew testE2e
 
 ## clean: Clean build artifacts
 clean:
