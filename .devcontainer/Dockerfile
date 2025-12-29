@@ -1,5 +1,5 @@
-# Use Eclipse Temurin JDK 25
-FROM eclipse-temurin:25-jdk
+# Use Eclipse Temurin JDK 21
+FROM eclipse-temurin:21-jdk
 
 # Install basic utilities
 RUN apt-get update && apt-get install -y \
@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     unzip \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Gradle 9.2.1 (matches project's wrapper version)

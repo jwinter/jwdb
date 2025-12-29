@@ -11,7 +11,8 @@
     "vscode": {
       "extensions": [
         "fwcd.kotlin",
-        "vscjava.vscode-gradle"
+        "vscjava.vscode-gradle",
+        "anthropic.claude-code"
       ]
     },
     "cursor": {
@@ -24,4 +25,3 @@
   "remoteUser": "root",
   "postCreateCommand": "if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then gradle wrapper --gradle-version 9.2.1; fi && java -version && ./gradlew --version"
 }
-
