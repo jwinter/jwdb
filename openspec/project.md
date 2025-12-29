@@ -7,7 +7,7 @@ This project is designed to learn AI LLM-assisted programming with a focus on Ko
 - Kotlin (latest LTS version)
 - Gradle (Kotlin DSL)
 - Netty (for networking)
-- JVM: Temurin Java 25
+- JVM: Temurin Java 21
 - Testing framework: JUnit 5
 
 ## Project Conventions
@@ -42,7 +42,7 @@ This is a low-latency, high-traffic data store designed to handle many concurren
 ## Important Constraints
 - High performance is important
 - Stability is more important than performance
-- Must compile and run on Temurin JVM Java 25
+- Must compile and run on Temurin JVM Java 21
 - Kubernetes-native design preferred
 
 ## External Dependencies
