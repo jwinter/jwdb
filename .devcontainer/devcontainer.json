@@ -23,5 +23,5 @@
     }
   },
   "remoteUser": "root",
-  "postCreateCommand": "if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then gradle wrapper --gradle-version 9.2.1; fi && java -version && ./gradlew --version"
+  "postCreateCommand": "if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then gradle wrapper --gradle-version 9.2.1; fi && java -version && ./gradlew --version && node --version && npm --version && openspec --version"
 }
