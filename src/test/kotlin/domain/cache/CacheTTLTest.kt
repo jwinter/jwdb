@@ -215,10 +215,11 @@ class CacheTTLTest {
 
     @Test
     fun `manual removeExpired should not interfere with automatic cleanup metrics`() {
+        // Long interval so it doesn't run during test
         val cache =
             InMemoryCache<String>(
                 enableAutoCleanup = true,
-                cleanupIntervalSeconds = 10, // Long interval so it doesn't run during test
+                cleanupIntervalSeconds = 10,
             )
 
         try {

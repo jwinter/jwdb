@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package cache;
+
+option java_package = "com.example.cache.proto";
+option java_outer_classname = "CacheProto";
+option java_multiple_files = true;
+
+// CacheEntry represents a single cache entry with metadata
+message CacheEntry {
+  bytes data = 1;           // Serialized value data
+  int64 created_at = 2;     // Timestamp when entry was created (milliseconds since epoch)
+  int64 expires_at = 3;     // Timestamp when entry expires (0 = never expires)
+  int64 version = 4;        // Version number for conflict resolution
+}
+
+// GetRequest represents a cache get operation
+message GetRequest {
+  string key = 1;           // Cache key to retrieve
+}
+
+// GetResponse represents the result of a get operation
+message GetResponse {
+  enum Status {
+    HIT = 0;                // Key found in cache
+    MISS = 1;               // Key not found or expired
+    ERROR = 2;              // Error occurred
+  }
+
+  Status status = 1;        // Result status
+  CacheEntry entry = 2;     // Cache entry (only present if status = HIT)
+  string error_message = 3; // Error message (only present if status = ERROR)
+}
+
+// PutRequest represents a cache put operation
+message PutRequest {
+  string key = 1;           // Cache key
+  CacheEntry entry = 2;     // Cache entry to store
+}
+
+// PutResponse represents the result of a put operation
+message PutResponse {
+  enum Status {
+    SUCCESS = 0;            // Entry stored successfully
+    ERROR = 1;              // Error occurred
+  }
+
+  Status status = 1;        // Result status
+  string error_message = 2; // Error message (only present if status = ERROR)
+}
+
+// DeleteRequest represents a cache delete operation
+message DeleteRequest {
+  string key = 1;           // Cache key to delete
+}
+
+// DeleteResponse represents the result of a delete operation
+message DeleteResponse {
+  enum Status {
+    SUCCESS = 0;            // Entry deleted successfully
+    ERROR = 1;              // Error occurred
+  }
+
+  Status status = 1;        // Result status
+  string error_message = 2; // Error message (only present if status = ERROR)
+}

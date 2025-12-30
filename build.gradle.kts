@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.3.0"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
+    id("com.google.protobuf") version "0.9.4"
 }
 
 group = "com.example"
@@ -18,6 +19,11 @@ java {
 }
 
 dependencies {
+    // Protobuf dependencies
+    implementation("com.google.protobuf:protobuf-kotlin:4.29.2")
+    implementation("com.google.protobuf:protobuf-java:4.29.2")
+
+    // Test dependencies
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -53,5 +59,24 @@ tasks.register<Test>("testE2e") {
     classpath = tasks.test.get().classpath
     useJUnitPlatform {
         includeTags("e2e")
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.29.2"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("kotlin")
+            }
+        }
+    }
+}
+
+ktlint {
+    filter {
+        exclude { projectDir.toURI().relativize(it.file.toURI()).path.contains("/generated/") }
     }
 }
