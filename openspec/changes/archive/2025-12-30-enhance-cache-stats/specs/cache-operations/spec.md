@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Cache Statistics (Enhanced)
 The cache SHALL provide comprehensive statistics about its operations and performance.
@@ -21,8 +21,6 @@ The cache SHALL provide comprehensive statistics about its operations and perfor
 - **THEN** CacheStats includes createdAt timestamp
 - **AND** uptime can be calculated from createdAt
 - **AND** statistics provide context about cache age
-
-## ADDED Requirements
 
 ### Requirement: Statistics Reset
 The cache SHALL support resetting statistics counters.

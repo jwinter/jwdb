@@ -7,26 +7,44 @@
 - ✅ DevContainer configuration with Java 21 (Temurin)
 - ✅ Test classification system (unit/integration/e2e with JUnit 5 tags)
 - ✅ Basic cache domain model (Cache interface, InMemoryCache, CacheValue, CacheKey)
-- ✅ OpenSpec documentation organized (4 specs in main specs directory)
+- ✅ OpenSpec documentation organized (6 specs: cache-operations, serialization, development-environment, development-workflow, project-foundation, test-classification)
 
 ## Current Implementation
 - Domain layer with core cache operations (get, put, delete, clear, contains)
 - Thread-safe InMemoryCache with ConcurrentHashMap
 - Eviction policies (LRU, FIFO, RANDOM)
-- Basic cache statistics (hits, misses, evictions, size)
-- Expiration support (manual cleanup via removeExpired())
+- Enhanced cache statistics with comprehensive metrics and formatted output
+- Automatic TTL-based background cleanup with configurable intervals
+- Protocol Buffers serialization layer with CacheSerializer interface
+- Expiration support (both automatic and manual cleanup)
+
+## Completed Features (Phase 1: 3/4 Complete)
+1. ✅ **enhance-cache-stats** (25/25 tasks) - Archived 2025-12-30
+   - Comprehensive metrics tracking (hits, misses, evictions by policy, operations)
+   - Statistics reset capability
+   - Formatted statistics output
+   - Thread-safe concurrent access
+2. ✅ **add-cache-ttl-support** (26/26 tasks) - Archived 2025-12-30
+   - Automatic background expiration cleanup
+   - Configurable cleanup intervals (default 60s)
+   - Cleanup metrics and monitoring
+   - Graceful lifecycle management
+3. ✅ **add-protobuf-support** (22/22 tasks) - Archived 2025-12-30
+   - Protocol Buffers schemas for cache protocol
+   - CacheSerializer<T> abstraction layer
+   - ProtobufSerializer implementation
+   - Generated Kotlin code from .proto files
 
 ## Proposed Changes (Ready for Implementation)
 
-### Foundation & Core Features
-1. **enhance-cache-stats** (0/25 tasks) - Comprehensive cache metrics and monitoring
-2. **add-cache-ttl-support** (0/26 tasks) - Automatic background expiration cleanup
-3. **add-protobuf-support** (0/22 tasks) - Protocol Buffers for serialization
-
-### Network & Distribution
+### Phase 1: Single-Node Production Ready (Final Feature)
 4. **add-netty-server** (0/27 tasks) - Network server for cache operations
-5. **add-cross-datacenter-replication** (0/52 tasks) - Peer-to-peer replication with gossip protocol
-6. **add-persistence-layer** (0/64 tasks) - WAL and snapshots for durability
+
+### Phase 2: Distributed System
+5. **add-cross-datacenter-replication** (0/64 tasks) - Peer-to-peer replication with gossip protocol
+
+### Phase 3: Durability & Recovery
+6. **add-persistence-layer** (0/77 tasks) - WAL and snapshots for durability
 
 ## Recommended Implementation Order
 
