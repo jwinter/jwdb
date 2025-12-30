@@ -3,7 +3,12 @@
     "allow": [
       "Bash(openspec list:*)",
       "Bash(openspec validate:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(./gradlew testIntegration:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(./gradlew ktlintFormat:*)",
+      "Bash(./gradlew testUnit:*)"
     ]
   }
 }
