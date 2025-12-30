@@ -1,130 +1,157 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
-### Requirement: Cluster Membership Management
-The system SHALL manage cluster membership using a gossip protocol.
+This spec extends the `replication` capability with cross-datacenter (XDCR) features. It assumes single-datacenter replication is already implemented.
 
-#### Scenario: Node joins cluster
-- **WHEN** a new node starts and joins the cluster
-- **THEN** it gossips with seed nodes to learn cluster topology
-- **AND** its membership is propagated to all nodes via gossip
-- **AND** it receives its position in the consistent hash ring
-- **AND** other nodes become aware of it within gossip interval
+### Requirement: Datacenter-Aware Topology
+The system SHALL manage datacenter and rack awareness for replica placement.
 
-#### Scenario: Node failure detection
-- **WHEN** a node becomes unresponsive
-- **THEN** neighboring nodes detect failure via gossip heartbeats
-- **AND** the node is marked as suspected after missed heartbeats
-- **AND** the node is marked as down after suspicion timeout
-- **AND** failure status propagates via gossip to all nodes
+#### Scenario: Node configured with datacenter and rack
+- **WHEN** a node starts with datacenter and rack configuration
+- **THEN** it registers itself with DC and rack metadata
+- **AND** the cluster topology tracks DC membership
+- **AND** gossip propagates DC and rack information
+- **AND** other nodes become aware of the DC topology
 
-#### Scenario: Node leaves gracefully
-- **WHEN** a node shuts down gracefully
-- **THEN** it announces departure via gossip
-- **AND** it transfers its data to replica nodes
-- **AND** its departure is propagated to all cluster members
-- **AND** the consistent hash ring is updated
+#### Scenario: DC-aware replica placement
+- **WHEN** replicas are selected for a key
+- **THEN** the system prefers to distribute replicas across datacenters
+- **AND** within each DC, replicas are spread across racks when possible
+- **AND** the same key has replicas in multiple DCs for disaster recovery
+- **AND** replica placement respects per-DC replication factor configuration
 
-### Requirement: Data Replication
-The system SHALL replicate data across multiple nodes based on replication factor.
+### Requirement: Cross-Datacenter Consistency Levels
+The system SHALL support datacenter-aware consistency levels for reads and writes.
 
-#### Scenario: Write with replication factor 3
-- **WHEN** a write operation is performed
-- **THEN** the coordinator determines 3 replica nodes via consistent hashing
-- **AND** the write is sent to all 3 replicas
-- **AND** each replica stores the data with version information
-- **AND** success depends on configured consistency level
+#### Scenario: Write with LOCAL_QUORUM consistency
+- **WHEN** a write is performed with LOCAL_QUORUM in a multi-DC cluster
+- **THEN** the coordinator waits for quorum in local DC only
+- **AND** the write returns success after local DC quorum
+- **AND** cross-DC replication happens asynchronously
+- **AND** low latency is achieved for local writes
 
-#### Scenario: Successful write with QUORUM consistency
-- **WHEN** a write is performed with QUORUM consistency
-- **THEN** the coordinator waits for 2 out of 3 replicas to acknowledge
-- **AND** the write returns success to the client
-- **AND** remaining replicas are updated asynchronously
-- **AND** version information ensures consistency
+#### Scenario: Write with EACH_QUORUM consistency
+- **WHEN** a write is performed with EACH_QUORUM
+- **THEN** the coordinator waits for quorum in each datacenter
+- **AND** the write succeeds only if all DCs achieve quorum
+- **AND** this provides strong consistency across DCs
+- **AND** higher latency is expected due to WAN round-trips
 
-#### Scenario: Handle replica node failure during write
-- **WHEN** a replica node is down during a write
-- **THEN** the coordinator stores a hint for the failed replica
-- **AND** the write succeeds if consistency level is met by available replicas
-- **AND** the hint is replayed when the node recovers
-- **AND** the client is not blocked by the failure
+#### Scenario: Read with LOCAL_ONE consistency
+- **WHEN** a read is performed with LOCAL_ONE
+- **THEN** the coordinator queries one replica in local DC only
+- **AND** the read returns immediately without cross-DC queries
+- **AND** this provides lowest latency for reads
+- **AND** stale data may be returned if cross-DC replication is lagging
 
-### Requirement: Tunable Consistency
-The system SHALL support multiple consistency levels for reads and writes.
+#### Scenario: Read with LOCAL_QUORUM consistency
+- **WHEN** a read is performed with LOCAL_QUORUM in multi-DC cluster
+- **THEN** the coordinator queries quorum in local DC only
+- **AND** it returns the latest version among local replicas
+- **AND** cross-DC replicas are not queried
+- **AND** read repair updates local DC replicas only
 
-#### Scenario: Write with ONE consistency
-- **WHEN** a write is performed with ONE consistency
-- **THEN** the coordinator returns success after first replica acknowledges
-- **AND** other replicas are updated asynchronously
-- **AND** low latency is prioritized over durability
+### Requirement: Asynchronous Cross-Datacenter Replication
+The system SHALL replicate writes across datacenters asynchronously by default.
 
-#### Scenario: Write with ALL consistency
-- **WHEN** a write is performed with ALL consistency
-- **THEN** the coordinator waits for all replicas to acknowledge
-- **AND** the write fails if any replica is unavailable
-- **AND** strong durability is guaranteed
+#### Scenario: Write replicated across DCs asynchronously
+- **WHEN** a write succeeds in local DC
+- **THEN** the write is queued for cross-DC replication
+- **AND** background workers propagate to remote DCs
+- **AND** the client does not wait for cross-DC propagation
+- **AND** replication lag is monitored per DC
 
-#### Scenario: Read with QUORUM consistency
-- **WHEN** a read is performed with QUORUM consistency
-- **THEN** the coordinator queries majority of replicas
-- **AND** it returns the value with the latest version
-- **AND** it performs read repair if versions differ across replicas
+#### Scenario: Cross-DC replication with remote DC unavailable
+- **WHEN** a remote DC is unavailable during replication
+- **THEN** writes continue to succeed in available DCs
+- **AND** replication to unavailable DC is retried with backoff
+- **AND** replication backlog is tracked
+- **AND** writes propagate when remote DC recovers
 
-### Requirement: Conflict Resolution
-The system SHALL detect and resolve conflicts using versioning.
+#### Scenario: Cross-DC replication catch-up after recovery
+- **WHEN** a DC recovers from isolation
+- **THEN** it receives queued writes from other DCs
+- **AND** replication backlog is processed in order
+- **AND** the DC catches up to current state
+- **AND** replication lag decreases to normal levels
 
-#### Scenario: Detect conflicting writes
-- **WHEN** the same key is written to different replicas concurrently
-- **THEN** each replica stores the write with timestamp and node ID
-- **AND** version comparison detects the conflict during read or repair
-- **AND** the conflict resolver determines the winning version
+### Requirement: Cross-Datacenter Conflict Resolution
+The system SHALL detect and resolve conflicts that occur across datacenters.
 
-#### Scenario: Resolve conflict with last-write-wins
-- **WHEN** conflicting versions exist for a key
-- **THEN** the version with the latest timestamp wins
-- **AND** ties are broken using node ID comparison
-- **AND** the winning version is propagated during read repair
-- **AND** stale versions are discarded
+#### Scenario: Detect cross-DC conflicting writes
+- **WHEN** the same key is written in different DCs concurrently
+- **THEN** each DC stores the write with DC ID and timestamp
+- **AND** conflict is detected when replication propagates
+- **AND** version comparison identifies the conflict
+- **AND** conflict resolver determines winning version
 
-### Requirement: Read Repair
-The system SHALL repair inconsistencies discovered during reads.
+#### Scenario: Resolve cross-DC conflict with DC-aware LWW
+- **WHEN** conflicting versions exist across DCs
+- **THEN** the version with latest timestamp wins
+- **AND** ties are broken using DC ID comparison (deterministic)
+- **AND** the winning version propagates to all DCs
+- **AND** stale versions are replaced during replication
 
-#### Scenario: Detect version mismatch during read
-- **WHEN** a read queries multiple replicas
-- **THEN** the coordinator compares version information
-- **AND** it detects if replicas have different versions
-- **AND** it returns the latest version to the client
-- **AND** it asynchronously updates stale replicas
+### Requirement: Datacenter Failover
+The system SHALL support datacenter failover for high availability.
 
-### Requirement: Hinted Handoff
-The system SHALL store hints for temporarily unavailable nodes.
+#### Scenario: Detect datacenter failure
+- **WHEN** all nodes in a datacenter become unreachable
+- **THEN** other DCs detect the failure via cross-DC gossip
+- **AND** the failed DC is marked as unavailable
+- **AND** requests are routed to healthy DCs only
+- **AND** DC failure is logged and alerted
 
-#### Scenario: Store hint for unavailable replica
-- **WHEN** a write cannot reach a replica node
-- **THEN** the coordinator stores a hint locally
-- **AND** the hint includes the key, value, and target node
-- **AND** the hint is persisted until the node recovers
-- **AND** hints have configurable TTL to prevent unbounded growth
+#### Scenario: Client failover to healthy datacenter
+- **WHEN** local DC is unavailable
+- **THEN** clients automatically failover to next-closest DC
+- **AND** reads and writes succeed in the healthy DC
+- **AND** data is still available via replication
+- **AND** applications continue operating
 
-#### Scenario: Replay hints when node recovers
-- **WHEN** a previously down node becomes available
-- **THEN** nodes with hints for it detect recovery via gossip
-- **AND** stored hints are replayed to the recovered node
-- **AND** hints are deleted after successful replay
-- **AND** the recovered node catches up on missed writes
+#### Scenario: Datacenter recovery
+- **WHEN** a failed DC recovers
+- **THEN** nodes rejoin via gossip
+- **AND** the DC catches up via replication backlog
+- **AND** requests are gradually routed back to recovered DC
+- **AND** the cluster returns to normal multi-DC operation
 
-### Requirement: Consistent Hashing
-The system SHALL use consistent hashing for data distribution.
+### Requirement: Cross-Datacenter Read Repair
+The system SHALL repair inconsistencies across datacenters discovered during reads.
 
-#### Scenario: Determine replica nodes for a key
-- **WHEN** a key needs to be stored or retrieved
-- **THEN** the consistent hash function determines the primary node
-- **AND** the replication factor determines additional replica nodes
-- **AND** replicas are chosen from different racks/datacenters when possible
-- **AND** the same key always maps to the same set of replicas
+#### Scenario: Cross-DC read repair with version mismatch
+- **WHEN** a cross-DC read detects version mismatch
+- **THEN** the coordinator identifies stale DCs
+- **AND** it returns latest version to client
+- **AND** it asynchronously repairs stale replicas in remote DCs
+- **AND** repair is queued for cross-DC propagation
 
-#### Scenario: Handle node addition to cluster
-- **WHEN** a new node joins the cluster
-- **THEN** only keys in its token range are rebalanced
-- **AND** minimal data movement occurs (1/N where N is cluster size)
-- **AND** virtual nodes improve distribution across the ring
-- **AND** the cluster remains available during rebalancing
+#### Scenario: Prefer local DC for reads
+- **WHEN** a read is performed without DC-specific consistency
+- **THEN** the coordinator queries local DC replicas first
+- **AND** cross-DC queries only happen if local replicas unavailable
+- **AND** this minimizes read latency for local clients
+- **AND** read routing is transparent to applications
+
+### Requirement: Cross-Datacenter Gossip
+The system SHALL extend gossip protocol for cross-datacenter cluster state.
+
+#### Scenario: Cross-DC gossip propagation
+- **WHEN** gossip runs in multi-DC cluster
+- **THEN** within-DC gossip uses fast intervals (default: 1 second)
+- **AND** cross-DC gossip uses slower intervals (default: 10 seconds)
+- **AND** cluster state converges across all DCs
+- **AND** DC-aware timeouts prevent false failure detection
+
+#### Scenario: Detect datacenter network partition
+- **WHEN** network partition isolates datacenters
+- **THEN** each DC continues operating independently
+- **AND** cross-DC gossip fails with timeout
+- **AND** DC isolation is detected and logged
+- **AND** within-DC operations continue normally
+
+#### Scenario: Heal datacenter network partition
+- **WHEN** network partition between DCs heals
+- **THEN** cross-DC gossip resumes
+- **AND** conflicting states are resolved via version comparison
+- **AND** replication backlogs are exchanged and processed
+- **AND** cluster state re-converges across DCs

@@ -79,21 +79,37 @@ Build a production-quality single-node cache with comprehensive observability an
 
 **Why this order**: Start simple. Build observability first (stats), complete core functionality (TTL), then add network layer. Each feature builds on the previous.
 
-### Phase 2: Distributed System
-Transform to multi-node, distributed cache with cross-datacenter replication.
+### Phase 2A: Single-Datacenter Replication
+Transform to multi-node distributed cache within a single datacenter.
 
 **Goals**:
 - High availability through replication
 - Fault tolerance via peer-to-peer architecture
-- Low-latency geographic distribution
-- Tunable consistency guarantees
+- Tunable consistency guarantees (ONE, QUORUM, ALL)
+- Learn distributed systems fundamentals in simpler environment
 
 **Changes**:
-1. `add-cross-datacenter-replication` - Multi-node clustering with gossip protocol
+1. `add-single-dc-replication` - Multi-node clustering with gossip protocol, consistent hashing, replication
 
 **Dependencies**: Requires Phase 1 (network layer + serialization)
 
-**Why after Phase 1**: Replication adds significant complexity (gossip, consensus, conflict resolution). Must have solid single-node foundation and network protocol first.
+**Why after Phase 1**: Replication adds significant complexity (gossip, consistent hashing, conflict resolution). Must have solid single-node foundation and network protocol first. Start with single-DC to validate distributed primitives before adding cross-DC complexity.
+
+### Phase 2B: Cross-Datacenter Replication
+Extend to cross-datacenter replication for geographic distribution.
+
+**Goals**:
+- Geographic distribution and disaster recovery
+- Low-latency local reads with eventual cross-DC consistency
+- DC-aware consistency levels (LOCAL_QUORUM, EACH_QUORUM)
+- DC failover and split-brain handling
+
+**Changes**:
+1. `add-cross-datacenter-replication` - DC topology, cross-DC replication, DC-aware consistency
+
+**Dependencies**: Requires Phase 2A (single-DC replication)
+
+**Why after Phase 2A**: Cross-DC adds WAN latency, network partitions, and complex failure modes. Must have working single-DC replication first to build upon proven gossip, consistent hashing, and replication coordinator.
 
 ### Phase 3: Durability & Recovery
 Add disk-based persistence for crash recovery and long-term durability.
@@ -109,7 +125,7 @@ Add disk-based persistence for crash recovery and long-term durability.
 
 **Dependencies**: Best implemented after replication (coordinated snapshots across cluster)
 
-**Why last**: Persistence is independent of replication but benefits from coordinated cluster snapshots. Single-node persistence is simpler but less valuable. Multi-node persistence provides better fault tolerance.
+**Why last**: Persistence is independent of replication but benefits from coordinated cluster snapshots. Single-node persistence is simpler but less valuable. Multi-node persistence provides better fault tolerance. Can be implemented after Phase 2A (doesn't require cross-DC).
 
 ### Testing Philosophy by Phase
 
@@ -118,11 +134,17 @@ Add disk-based persistence for crash recovery and long-term durability.
 - Integration tests: TTL cleanup, network protocol, protobuf serialization
 - E2E tests: Complete request/response cycles through Netty server
 
-**Phase 2 Testing** (adds distributed testing):
+**Phase 2A Testing** (single-DC distributed testing):
 - Unit tests: Consistent hashing, conflict resolution, version comparison
 - Integration tests: Gossip protocol, replication coordinator, hinted handoff
-- E2E tests: Multi-node clusters, network partitions, failover scenarios
-- Chaos tests: Random node failures, network delays, split-brain scenarios
+- E2E tests: 3-node clusters, node failures, failover scenarios
+- Chaos tests: Random node failures, network delays
+
+**Phase 2B Testing** (cross-DC distributed testing):
+- Unit tests: DC topology, DC-aware placement, cross-DC conflict resolution
+- Integration tests: Cross-DC replication, DC failover, DC gossip
+- E2E tests: Multi-DC clusters, DC isolation, split-brain scenarios
+- Chaos tests: DC failures, WAN latency simulation, cross-DC partitions
 
 **Phase 3 Testing** (adds durability testing):
 - Unit tests: WAL writing, snapshot creation, recovery logic

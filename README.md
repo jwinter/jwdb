@@ -50,12 +50,19 @@ Phase 1 (Single-Node Production Ready) is **COMPLETE**. The system currently pro
 
 ### Planned (Future Phases)
 
-**Phase 2: Distributed System**
+**Phase 2A: Single-Datacenter Replication**
 - Peer-to-peer replication with gossip protocol
-- Cross-datacenter replication
 - Consistent hashing for data distribution
-- Tunable consistency guarantees
-- High availability and fault tolerance
+- Tunable consistency (ONE, QUORUM, ALL)
+- Read repair and hinted handoff
+- High availability within datacenter
+
+**Phase 2B: Cross-Datacenter Replication (XDCR)**
+- DC-aware topology and replica placement
+- Cross-datacenter asynchronous replication
+- DC-local consistency levels (LOCAL_QUORUM, EACH_QUORUM)
+- Datacenter failover and disaster recovery
+- Geographic distribution
 
 **Phase 3: Durability & Recovery**
 - Write-ahead log (WAL) for crash recovery
@@ -281,17 +288,29 @@ All Phase 1 features are implemented and tested:
 
 **Status**: Production-ready single-node cache server
 
-### Phase 2: Distributed System (Proposed)
+### Phase 2A: Single-Datacenter Replication (Proposed)
 
-Transform to multi-node distributed cache:
+Transform to multi-node distributed cache within a single datacenter:
 
 - Peer-to-peer replication with gossip protocol
 - Consistent hashing for data distribution
-- Tunable consistency (eventual, quorum, strong)
-- Hinted handoff for availability
-- Network partition tolerance
+- Tunable consistency (ONE, QUORUM, ALL)
+- Read repair and hinted handoff
+- Node failure detection and recovery
 
 **Dependencies**: Phase 1 complete (network layer + serialization)
+
+### Phase 2B: Cross-Datacenter Replication (Proposed)
+
+Extend to cross-datacenter replication for geographic distribution:
+
+- DC-aware topology and rack placement
+- Asynchronous cross-DC replication
+- DC-local consistency (LOCAL_QUORUM, EACH_QUORUM)
+- Datacenter failover and split-brain handling
+- Cross-DC conflict resolution
+
+**Dependencies**: Phase 2A complete (single-DC replication)
 
 ### Phase 3: Durability & Recovery (Proposed)
 
@@ -303,7 +322,7 @@ Add persistence for crash recovery:
 - Coordinated snapshots across cluster
 - Backup and restore capabilities
 
-**Dependencies**: Phase 2 recommended (coordinated cluster snapshots)
+**Dependencies**: Phase 2A recommended (coordinated cluster snapshots)
 
 ## Performance Characteristics
 

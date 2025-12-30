@@ -47,11 +47,14 @@
 
 ## Proposed Changes (Ready for Implementation)
 
-### Phase 2: Distributed System
-5. **add-cross-datacenter-replication** (0/64 tasks) - Peer-to-peer replication with gossip protocol
+### Phase 2A: Single-Datacenter Replication
+5. **add-single-dc-replication** (0/98 tasks) - Multi-node replication within single datacenter
+
+### Phase 2B: Cross-Datacenter Replication
+6. **add-cross-datacenter-replication** (0/99 tasks) - Cross-DC replication and DC-aware consistency
 
 ### Phase 3: Durability & Recovery
-6. **add-persistence-layer** (0/77 tasks) - WAL and snapshots for durability
+7. **add-persistence-layer** (0/77 tasks) - WAL and snapshots for durability
 
 ## Recommended Implementation Order
 
@@ -61,13 +64,21 @@
 3. **add-protobuf-support** - Serialization foundation
 4. **add-netty-server** - Network protocol (single-node mode)
 
-### Phase 2: Distributed System
-5. **add-cross-datacenter-replication** - Multi-node clustering with replication
+### Phase 2A: Single-Datacenter Replication
+5. **add-single-dc-replication** - Multi-node replication within single DC
    - Depends on: Netty server, protobuf
-   - Enables: High availability, fault tolerance, geographic distribution
+   - Enables: High availability, fault tolerance, distributed systems foundation
+   - Scope: Gossip, consistent hashing, replication (ONE/QUORUM/ALL), single DC only
+
+### Phase 2B: Cross-Datacenter Replication
+6. **add-cross-datacenter-replication** - Cross-DC replication and failover
+   - Depends on: Single-DC replication
+   - Enables: Geographic distribution, disaster recovery, DC-aware consistency
+   - Scope: DC topology, LOCAL_QUORUM, EACH_QUORUM, cross-DC async replication
 
 ### Phase 3: Durability & Recovery
-6. **add-persistence-layer** - Disk-based durability
+7. **add-persistence-layer** - Disk-based durability
    - Depends on: Replication (for coordinated snapshots)
    - Enables: Fast recovery, backup/restore, crash protection
+   - Note: Can be implemented after Phase 2A (doesn't require cross-DC)
 
