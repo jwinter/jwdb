@@ -23,6 +23,9 @@ dependencies {
     implementation("com.google.protobuf:protobuf-kotlin:4.29.2")
     implementation("com.google.protobuf:protobuf-java:4.29.2")
 
+    // Netty dependencies
+    implementation("io.netty:netty-all:4.1.115.Final")
+
     // Test dependencies
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

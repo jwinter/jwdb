@@ -76,3 +76,5 @@ test-output/
 # Local environment
 .env
 .env.local
+
+.kotlin/
