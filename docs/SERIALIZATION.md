@@ -20,9 +20,9 @@ This distributed cache uses **Protocol Buffers (protobuf)** for serializing cach
 - **MessagePack**: Good performance but less type safety and schema evolution support
 - **Apache Avro**: Similar features but less language support than protobuf
 
-## Implementation Plan
+## Implementation
 
-### Current State (Domain Layer)
+### Domain Layer (Serialization-Agnostic)
 
 The domain layer is **serialization-agnostic**:
 
@@ -35,66 +35,149 @@ val cache = InMemoryCache<User>()
 cache.put(CacheKey("user:123"), CacheValue(User(123, "Alice", "alice@example.com")))
 ```
 
-### Future State (Infrastructure Layer)
+### Infrastructure Layer (Serialization)
 
-The infrastructure layer will add serialization:
+The infrastructure layer provides pluggable serialization:
 
 ```kotlin
-// Future: Serialization interface
+// Serialization interface
+package infrastructure.serialization
+
 interface CacheSerializer<T> {
     fun serialize(value: T): ByteArray
     fun deserialize(bytes: ByteArray): T
 }
 
-// Future: Protobuf implementation
-class ProtobufSerializer<T : Message> : CacheSerializer<T> {
+// Protobuf implementation
+class ProtobufSerializer<T : MessageLite>(
+    private val parser: Parser<T>
+) : CacheSerializer<T> {
     override fun serialize(value: T): ByteArray = value.toByteArray()
-    override fun deserialize(bytes: ByteArray): T = parseFrom(bytes)
+    override fun deserialize(bytes: ByteArray): T = parser.parseFrom(bytes)
 }
 ```
 
-### Protobuf Schema Example
+### Using ProtobufSerializer
+
+```kotlin
+import infrastructure.serialization.ProtobufSerializer
+import com.example.cache.proto.User
+import com.example.cache.proto.user
+
+// Create serializer
+val userSerializer = ProtobufSerializer(User.parser())
+
+// Create user message
+val user = user {
+    id = "user123"
+    name = "Alice"
+    email = "alice@example.com"
+    age = 30
+    active = true
+    roles.add("admin")
+}
+
+// Serialize to bytes
+val bytes: ByteArray = userSerializer.serialize(user)
+
+// Deserialize from bytes
+val deserializedUser: User = userSerializer.deserialize(bytes)
+```
+
+### Protobuf Schemas
+
+The cache uses the following protobuf schemas (located in `src/main/proto/`):
+
+#### cache.proto
 
 ```protobuf
 syntax = "proto3";
 
-package cache.protocol;
+package cache;
 
-// Wire format for cache entries
+option java_package = "com.example.cache.proto";
+option java_outer_classname = "CacheProto";
+option java_multiple_files = true;
+
+// CacheEntry represents a single cache entry with metadata
 message CacheEntry {
-  bytes data = 1;              // Serialized user data (protobuf message)
-  int64 created_at = 2;        // Unix timestamp (milliseconds)
-  optional int64 expires_at = 3; // Optional expiration
-  int64 version = 4;           // Version for conflict resolution
+  bytes data = 1;           // Serialized value data
+  int64 created_at = 2;     // Timestamp when entry was created (milliseconds since epoch)
+  int64 expires_at = 3;     // Timestamp when entry expires (0 = never expires)
+  int64 version = 4;        // Version number for conflict resolution
 }
 
-// Example: User data type
+// GetRequest represents a cache get operation
+message GetRequest {
+  string key = 1;           // Cache key to retrieve
+}
+
+// GetResponse represents the result of a get operation
+message GetResponse {
+  enum Status {
+    HIT = 0;                // Key found in cache
+    MISS = 1;               // Key not found or expired
+    ERROR = 2;              // Error occurred
+  }
+
+  Status status = 1;        // Result status
+  CacheEntry entry = 2;     // Cache entry (only present if status = HIT)
+  string error_message = 3; // Error message (only present if status = ERROR)
+}
+
+// PutRequest represents a cache put operation
+message PutRequest {
+  string key = 1;           // Cache key
+  CacheEntry entry = 2;     // Cache entry to store
+}
+
+// PutResponse represents the result of a put operation
+message PutResponse {
+  enum Status {
+    SUCCESS = 0;            // Entry stored successfully
+    ERROR = 1;              // Error occurred
+  }
+
+  Status status = 1;        // Result status
+  string error_message = 2; // Error message (only present if status = ERROR)
+}
+
+// DeleteRequest represents a cache delete operation
+message DeleteRequest {
+  string key = 1;           // Cache key to delete
+}
+
+// DeleteResponse represents the result of a delete operation
+message DeleteResponse {
+  enum Status {
+    SUCCESS = 0;            // Entry deleted successfully
+    ERROR = 1;              // Error occurred
+  }
+
+  Status status = 1;        // Result status
+  string error_message = 2; // Error message (only present if status = ERROR)
+}
+```
+
+#### user.proto (Example for testing)
+
+```protobuf
+syntax = "proto3";
+
+package user;
+
+option java_package = "com.example.cache.proto";
+option java_outer_classname = "UserProto";
+option java_multiple_files = true;
+
+// User message for testing protobuf serialization
 message User {
-  int64 id = 1;
+  string id = 1;
   string name = 2;
   string email = 3;
-}
-
-// Cache protocol messages
-message GetRequest {
-  string key = 1;
-}
-
-message GetResponse {
-  oneof result {
-    CacheEntry entry = 1;
-    string error = 2;
-  }
-}
-
-message PutRequest {
-  string key = 1;
-  CacheEntry entry = 2;
-}
-
-message PutResponse {
-  bool success = 1;
-  optional string error = 2;
+  int32 age = 4;
+  bool active = 5;
+  repeated string roles = 6;
 }
 ```
 
@@ -127,12 +210,86 @@ Client (any language)
 4. **Performance**: Binary format minimizes bandwidth and latency
 5. **Evolution**: Schema versioning allows gradual rollouts and migrations
 
+## How to Add New Message Types
+
+### Step 1: Define the Protobuf Schema
+
+Create a new `.proto` file in `src/main/proto/` or add to an existing one:
+
+```protobuf
+// src/main/proto/product.proto
+syntax = "proto3";
+
+package product;
+
+option java_package = "com.example.cache.proto";
+option java_outer_classname = "ProductProto";
+option java_multiple_files = true;
+
+message Product {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+  int32 quantity = 4;
+  repeated string categories = 5;
+}
+```
+
+### Step 2: Build to Generate Kotlin Code
+
+Run Gradle to generate the Kotlin code:
+
+```bash
+./gradlew generateProto
+```
+
+This generates Kotlin classes in `build/generated/source/proto/main/kotlin/`.
+
+### Step 3: Create a Serializer
+
+```kotlin
+import infrastructure.serialization.ProtobufSerializer
+import com.example.cache.proto.Product
+
+val productSerializer = ProtobufSerializer(Product.parser())
+```
+
+### Step 4: Use the Serializer
+
+```kotlin
+import com.example.cache.proto.product
+
+// Create a product
+val product = product {
+    id = "prod123"
+    name = "Laptop"
+    price = 999.99
+    quantity = 10
+    categories.add("Electronics")
+    categories.add("Computers")
+}
+
+// Serialize
+val bytes = productSerializer.serialize(product)
+
+// Deserialize
+val deserialized = productSerializer.deserialize(bytes)
+```
+
+### Best Practices
+
+1. **Field Numbers**: Never reuse field numbers - they're permanent identifiers
+2. **Optional vs Required**: Use optional fields for better schema evolution
+3. **Naming**: Use snake_case for field names (protobuf convention)
+4. **Packages**: Use separate packages for different domains
+5. **Documentation**: Add comments to all messages and fields
+
 ## Migration Path
 
-1. ✅ **Phase 1** (Current): Implement domain layer with generic types
-2. **Phase 2**: Add protobuf schemas and Gradle plugin
-3. **Phase 3**: Implement serialization layer in infrastructure package
-4. **Phase 4**: Integrate with Netty network protocol
+1. ✅ **Phase 1**: Implement domain layer with generic types
+2. ✅ **Phase 2**: Add protobuf schemas and Gradle plugin
+3. ✅ **Phase 3**: Implement serialization layer in infrastructure package
+4. **Phase 4** (Next): Integrate with Netty network protocol
 5. **Phase 5**: Create client libraries for different languages
 
 ## Client Examples
