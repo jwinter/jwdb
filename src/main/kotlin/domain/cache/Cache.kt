@@ -58,6 +58,9 @@ data class CacheStats(
     val clearCount: Long = 0L,
     val evictionsByPolicy: Map<EvictionPolicy, Long> = emptyMap(),
     val createdAt: Long = System.currentTimeMillis(),
+    val expiredEntriesRemoved: Long = 0L,
+    val lastCleanupTime: Long? = null,
+    val cleanupCount: Long = 0L,
 ) {
     val hitRate: Double
         get() {
