@@ -2,6 +2,9 @@ package domain.cache
 
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -12,13 +15,18 @@ import java.util.concurrent.atomic.AtomicLong
  * - Automatic expiration checking
  * - Basic statistics tracking
  * - Optional maximum size limit
+ * - Automatic background cleanup of expired entries
  *
  * @property maxSize Maximum number of entries (null for unlimited)
  * @property evictionPolicy Strategy for evicting entries when maxSize is reached
+ * @property enableAutoCleanup Whether to enable automatic background cleanup of expired entries
+ * @property cleanupIntervalSeconds Interval in seconds between cleanup runs (default: 60)
  */
 class InMemoryCache<T>(
     private val maxSize: Long? = null,
     private val evictionPolicy: EvictionPolicy = EvictionPolicy.LRU,
+    private val enableAutoCleanup: Boolean = true,
+    private val cleanupIntervalSeconds: Long = 60,
 ) : Cache<T> {
     private val storage = ConcurrentHashMap<CacheKey, CacheValue<T>>()
     private val accessOrder = ConcurrentHashMap<CacheKey, AtomicLong>()
@@ -32,6 +40,19 @@ class InMemoryCache<T>(
     private val clearCount = AtomicLong(0)
     private val evictionsByPolicy = ConcurrentHashMap<EvictionPolicy, AtomicLong>()
     private val createdAt = System.currentTimeMillis()
+    private val expiredEntriesRemoved = AtomicLong(0)
+    private val cleanupCount = AtomicLong(0)
+
+    @Volatile
+    private var lastCleanupTime: Long? = null
+
+    private var cleanupExecutor: ScheduledExecutorService? = null
+
+    init {
+        if (enableAutoCleanup) {
+            startBackgroundCleanup()
+        }
+    }
 
     override fun get(key: CacheKey): CacheResult<T> {
         val value = storage[key]
@@ -119,6 +140,9 @@ class InMemoryCache<T>(
             clearCount = clearCount.get(),
             evictionsByPolicy = evictionsByPolicy.mapValues { it.value.get() },
             createdAt = createdAt,
+            expiredEntriesRemoved = expiredEntriesRemoved.get(),
+            lastCleanupTime = lastCleanupTime,
+            cleanupCount = cleanupCount.get(),
         )
 
     /**
@@ -133,6 +157,9 @@ class InMemoryCache<T>(
         deleteCount.set(0)
         clearCount.set(0)
         evictionsByPolicy.clear()
+        expiredEntriesRemoved.set(0)
+        cleanupCount.set(0)
+        lastCleanupTime = null
     }
 
     /**
@@ -161,6 +188,15 @@ class InMemoryCache<T>(
                     appendLine("      $policy: ${String.format("%,d", count)}")
                 }
             }
+            if (stats.cleanupCount > 0 || stats.expiredEntriesRemoved > 0) {
+                appendLine("  TTL Cleanup:")
+                appendLine("    Expired Entries Removed: ${String.format("%,d", stats.expiredEntriesRemoved)}")
+                appendLine("    Cleanup Cycles: ${String.format("%,d", stats.cleanupCount)}")
+                stats.lastCleanupTime?.let {
+                    val timeSinceCleanup = (System.currentTimeMillis() - it) / 1000
+                    appendLine("    Last Cleanup: ${timeSinceCleanup}s ago")
+                }
+            }
             append("  Uptime: ${uptimeSeconds}s")
         }
     }
@@ -184,6 +220,59 @@ class InMemoryCache<T>(
         }
 
         return removed
+    }
+
+    /**
+     * Starts the background cleanup task.
+     * Called automatically if enableAutoCleanup is true.
+     */
+    private fun startBackgroundCleanup() {
+        cleanupExecutor =
+            Executors.newSingleThreadScheduledExecutor { runnable ->
+                Thread(runnable, "cache-cleanup-thread").apply {
+                    isDaemon = true
+                }
+            }
+
+        cleanupExecutor?.scheduleAtFixedRate(
+            {
+                try {
+                    runCleanup()
+                } catch (e: Exception) {
+                    // Log error but don't let it stop the scheduled task
+                    System.err.println("Error during cache cleanup: ${e.message}")
+                }
+            },
+            cleanupIntervalSeconds,
+            cleanupIntervalSeconds,
+            TimeUnit.SECONDS,
+        )
+    }
+
+    /**
+     * Runs a single cleanup cycle.
+     */
+    private fun runCleanup() {
+        val removed = removeExpired()
+        expiredEntriesRemoved.addAndGet(removed.toLong())
+        cleanupCount.incrementAndGet()
+        lastCleanupTime = System.currentTimeMillis()
+    }
+
+    /**
+     * Stops the background cleanup task and releases resources.
+     * Should be called when the cache is no longer needed.
+     */
+    fun shutdown() {
+        cleanupExecutor?.shutdown()
+        try {
+            if (cleanupExecutor?.awaitTermination(5, TimeUnit.SECONDS) == false) {
+                cleanupExecutor?.shutdownNow()
+            }
+        } catch (e: InterruptedException) {
+            cleanupExecutor?.shutdownNow()
+            Thread.currentThread().interrupt()
+        }
     }
 
     private fun updateAccessOrder(key: CacheKey) {
