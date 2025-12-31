@@ -1,9 +1,31 @@
+## Progress Summary
+
+**Status**: In Progress
+**Started**: 2025-12-31
+**Last Updated**: 2025-12-31
+
+### Completed
+- ✅ Node data class with status tracking (ALIVE, SUSPECTED, DOWN, LEAVING, LEFT)
+- ✅ ConsistentHashRing with virtual nodes (256 vnodes per physical node)
+- ✅ Replica selection with `getReplicaNodes()` (skips dead nodes)
+- ✅ Comprehensive unit tests for consistent hashing (24 test cases, all passing)
+
+### In Progress
+- 🔨 Versioning and conflict resolution
+
+### Upcoming
+- Protocol Buffers schema extensions
+- SWIM-based gossip protocol
+- Replication coordinator with consistency levels
+
+---
+
 ## 1. Cluster Membership and Topology
-- [ ] 1.1 Define Node data class (id, address, port, status)
-- [ ] 1.2 Implement consistent hashing ring
-- [ ] 1.3 Add virtual nodes (vnodes) for load balancing
+- [x] 1.1 Define Node data class (id, address, port, status)
+- [x] 1.2 Implement consistent hashing ring
+- [x] 1.3 Add virtual nodes (vnodes) for load balancing
 - [ ] 1.4 Create ClusterTopology for managing ring membership
-- [ ] 1.5 Implement replica placement strategy (N adjacent nodes on ring)
+- [x] 1.5 Implement replica placement strategy (N adjacent nodes on ring)
 - [ ] 1.6 Add token range calculation and assignment
 
 ## 2. Gossip Protocol
@@ -74,9 +96,9 @@
 - [ ] 9.5 Add configuration file support (YAML or properties)
 
 ## 10. Testing - Unit Tests
-- [ ] 10.1 Test consistent hashing and token assignment
-- [ ] 10.2 Test replica placement with RF=3
-- [ ] 10.3 Test virtual node distribution
+- [x] 10.1 Test consistent hashing and token assignment
+- [x] 10.2 Test replica placement with RF=3
+- [x] 10.3 Test virtual node distribution
 - [ ] 10.4 Test gossip state transitions
 - [ ] 10.5 Test conflict resolution (LWW)
 - [ ] 10.6 Test version comparison edge cases
