@@ -9,14 +9,19 @@
 - ✅ ConsistentHashRing with virtual nodes (256 vnodes per physical node)
 - ✅ Replica selection with `getReplicaNodes()` (skips dead nodes)
 - ✅ Comprehensive unit tests for consistent hashing (24 test cases, all passing)
+- ✅ Version data class with timestamp + nodeId for distributed versioning
+- ✅ Updated CacheValue to use distributed Version instead of simple Long
+- ✅ Updated Protocol Buffers schema with Version message
+- ✅ ConflictResolver interface and LastWriteWins implementation
+- ✅ Comprehensive unit tests for versioning and conflict resolution (27 test cases)
 
 ### In Progress
-- 🔨 Versioning and conflict resolution
+- 🔨 Consistency levels and replication coordinator
 
 ### Upcoming
-- Protocol Buffers schema extensions
 - SWIM-based gossip protocol
-- Replication coordinator with consistency levels
+- Hinted handoff
+- Read repair
 
 ---
 
@@ -39,12 +44,12 @@
 - [ ] 2.8 Configure gossip interval and timeouts
 
 ## 3. Versioning and Conflict Detection
-- [ ] 3.1 Add Version data class (timestamp + node ID)
-- [ ] 3.2 Update CacheValue to include version field
-- [ ] 3.3 Implement version comparison logic
-- [ ] 3.4 Create ConflictResolver interface
-- [ ] 3.5 Implement LastWriteWins conflict resolver
-- [ ] 3.6 Add unit tests for version comparison and conflict resolution
+- [x] 3.1 Add Version data class (timestamp + node ID)
+- [x] 3.2 Update CacheValue to include version field
+- [x] 3.3 Implement version comparison logic
+- [x] 3.4 Create ConflictResolver interface
+- [x] 3.5 Implement LastWriteWins conflict resolver
+- [x] 3.6 Add unit tests for version comparison and conflict resolution
 
 ## 4. Replication Coordinator
 - [ ] 4.1 Define ConsistencyLevel enum (ONE, QUORUM, ALL)

@@ -6,12 +6,18 @@ option java_package = "com.example.cache.proto";
 option java_outer_classname = "CacheProto";
 option java_multiple_files = true;
 
+// Version represents a distributed version for conflict resolution
+message Version {
+  int64 timestamp = 1;      // Timestamp in milliseconds since epoch
+  string node_id = 2;       // Unique identifier of the node that created this version
+}
+
 // CacheEntry represents a single cache entry with metadata
 message CacheEntry {
   bytes data = 1;           // Serialized value data
   int64 created_at = 2;     // Timestamp when entry was created (milliseconds since epoch)
   int64 expires_at = 3;     // Timestamp when entry expires (0 = never expires)
-  int64 version = 4;        // Version number for conflict resolution
+  Version version = 4;      // Distributed version for conflict resolution (timestamp + nodeId)
 }
 
 // GetRequest represents a cache get operation

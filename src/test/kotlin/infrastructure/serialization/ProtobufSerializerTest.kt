@@ -8,6 +8,7 @@ import com.example.cache.proto.GetResponse
 import com.example.cache.proto.PutRequest
 import com.example.cache.proto.PutResponse
 import com.example.cache.proto.User
+import com.example.cache.proto.Version
 import com.example.cache.proto.cacheEntry
 import com.example.cache.proto.deleteRequest
 import com.example.cache.proto.deleteResponse
@@ -65,7 +66,7 @@ class ProtobufSerializerTest {
                 data = ByteString.copyFromUtf8("test data")
                 createdAt = 1234567890L
                 expiresAt = 1234567900L
-                version = 1L
+                version = Version.newBuilder().setTimestamp(1L).setNodeId("test-node").build()
             }
 
         val bytes = serializer.serialize(original)
@@ -101,7 +102,7 @@ class ProtobufSerializerTest {
                 data = ByteString.copyFromUtf8("value")
                 createdAt = 1000L
                 expiresAt = 2000L
-                version = 1L
+                version = Version.newBuilder().setTimestamp(1L).setNodeId("test-node").build()
             }
 
         val original =
@@ -158,7 +159,7 @@ class ProtobufSerializerTest {
                 data = ByteString.copyFromUtf8("test value")
                 createdAt = System.currentTimeMillis()
                 expiresAt = 0L
-                version = 1L
+                version = Version.newBuilder().setTimestamp(1L).setNodeId("test-node").build()
             }
 
         val original =
@@ -298,7 +299,7 @@ class ProtobufSerializerTest {
                 data = ByteString.EMPTY
                 createdAt = 0L
                 expiresAt = 0L
-                version = 0L
+                version = Version.newBuilder().setTimestamp(0L).setNodeId("test-node").build()
             }
 
         val bytes = serializer.serialize(original)
@@ -317,7 +318,7 @@ class ProtobufSerializerTest {
                 data = ByteString.copyFrom(largeData)
                 createdAt = System.currentTimeMillis()
                 expiresAt = 0L
-                version = 1L
+                version = Version.newBuilder().setTimestamp(1L).setNodeId("test-node").build()
             }
 
         val bytes = serializer.serialize(original)
@@ -393,7 +394,7 @@ class ProtobufSerializerTest {
                 data = ByteString.copyFromUtf8("test")
                 createdAt = 1000L
                 expiresAt = 2000L
-                version = 1L
+                version = Version.newBuilder().setTimestamp(1L).setNodeId("test-node").build()
             }
 
         // First roundtrip
