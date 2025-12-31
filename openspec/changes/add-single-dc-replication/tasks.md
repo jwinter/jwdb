@@ -14,14 +14,19 @@
 - ✅ Updated Protocol Buffers schema with Version message
 - ✅ ConflictResolver interface and LastWriteWins implementation
 - ✅ Comprehensive unit tests for versioning and conflict resolution (27 test cases)
+- ✅ ConsistencyLevel enum (ONE, QUORUM, ALL) with quorum calculation
+- ✅ ReplicationCoordinator interface with read/write/delete operations
+- ✅ SimpleReplicationCoordinator implementation with timeout handling
+- ✅ ReplicationConfig with validation and quorum size calculation
+- ✅ Comprehensive unit tests for consistency levels and coordinator (31 test cases)
 
 ### In Progress
-- 🔨 Consistency levels and replication coordinator
+- 🔨 SWIM-based gossip protocol
 
 ### Upcoming
-- SWIM-based gossip protocol
 - Hinted handoff
 - Read repair
+- Network protocol extensions for replication
 
 ---
 
@@ -52,13 +57,13 @@
 - [x] 3.6 Add unit tests for version comparison and conflict resolution
 
 ## 4. Replication Coordinator
-- [ ] 4.1 Define ConsistencyLevel enum (ONE, QUORUM, ALL)
-- [ ] 4.2 Create ReplicationCoordinator interface
-- [ ] 4.3 Implement write coordination with configurable consistency
-- [ ] 4.4 Implement read coordination with consistency levels
-- [ ] 4.5 Add quorum calculation logic (N/2 + 1)
-- [ ] 4.6 Implement timeout handling for replica operations
-- [ ] 4.7 Add replica selection from consistent hash ring
+- [x] 4.1 Define ConsistencyLevel enum (ONE, QUORUM, ALL)
+- [x] 4.2 Create ReplicationCoordinator interface
+- [x] 4.3 Implement write coordination with configurable consistency
+- [x] 4.4 Implement read coordination with consistency levels
+- [x] 4.5 Add quorum calculation logic (N/2 + 1)
+- [x] 4.6 Implement timeout handling for replica operations
+- [x] 4.7 Add replica selection from consistent hash ring
 
 ## 5. Write Path
 - [ ] 5.1 Modify put() to coordinate writes across replicas
@@ -105,9 +110,14 @@
 - [x] 10.2 Test replica placement with RF=3
 - [x] 10.3 Test virtual node distribution
 - [ ] 10.4 Test gossip state transitions
-- [ ] 10.5 Test conflict resolution (LWW)
-- [ ] 10.6 Test version comparison edge cases
-- [ ] 10.7 Test quorum calculation
+- [x] 10.5 Test conflict resolution (LWW)
+- [x] 10.6 Test version comparison edge cases
+- [x] 10.7 Test quorum calculation
+- [x] 10.8 Test ConsistencyLevel enum and requiredResponses()
+- [x] 10.9 Test ReplicationCoordinator writes (ONE/QUORUM/ALL)
+- [x] 10.10 Test ReplicationCoordinator reads with conflict resolution
+- [x] 10.11 Test ReplicationCoordinator deletes
+- [x] 10.12 Test ReplicationConfig validation
 
 ## 11. Testing - Integration Tests
 - [ ] 11.1 Setup docker-compose for 3-node cluster
