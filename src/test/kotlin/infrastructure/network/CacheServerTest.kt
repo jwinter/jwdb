@@ -19,6 +19,7 @@ import java.io.DataOutputStream
 import java.net.Socket
 import java.time.Duration
 import java.time.Instant
+import com.example.cache.proto.Version as ProtoVersion
 
 @Tag("integration")
 class CacheServerTest {
@@ -97,7 +98,12 @@ class CacheServerTest {
                         .setData(ByteString.copyFrom(value))
                         .setCreatedAt(now.toEpochMilli())
                         .setExpiresAt(0) // Never expires
-                        .setVersion(1)
+                        .setVersion(
+                            ProtoVersion.newBuilder()
+                                .setTimestamp(now.toEpochMilli())
+                                .setNodeId("test-node")
+                                .build(),
+                        )
                         .build(),
                 )
                 .build()
@@ -133,15 +139,21 @@ class CacheServerTest {
         val value = "delete-value".toByteArray()
 
         // Setup - Put a value first
+        val setupNow = Instant.now()
         val putRequest =
             PutRequest.newBuilder()
                 .setKey(key)
                 .setEntry(
                     CacheEntry.newBuilder()
                         .setData(ByteString.copyFrom(value))
-                        .setCreatedAt(Instant.now().toEpochMilli())
+                        .setCreatedAt(setupNow.toEpochMilli())
                         .setExpiresAt(0)
-                        .setVersion(1)
+                        .setVersion(
+                            ProtoVersion.newBuilder()
+                                .setTimestamp(setupNow.toEpochMilli())
+                                .setNodeId("test-node")
+                                .build(),
+                        )
                         .build(),
                 )
                 .build()
@@ -188,7 +200,12 @@ class CacheServerTest {
                         .setData(ByteString.copyFrom(value))
                         .setCreatedAt(now.minus(Duration.ofMinutes(2)).toEpochMilli())
                         .setExpiresAt(expiresAt.toEpochMilli())
-                        .setVersion(1)
+                        .setVersion(
+                            ProtoVersion.newBuilder()
+                                .setTimestamp(now.toEpochMilli())
+                                .setNodeId("test-node")
+                                .build(),
+                        )
                         .build(),
                 )
                 .build()

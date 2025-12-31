@@ -12,6 +12,7 @@ import domain.cache.WriteResult
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import java.time.Instant
+import domain.replication.Version as DomainVersion
 
 /**
  * Handles cache protocol requests and generates responses.
@@ -44,13 +45,23 @@ class CacheProtocolHandler<T>(
         val response =
             when (result) {
                 is CacheResult.Hit -> {
-                    val entry =
+                    val entryBuilder =
                         com.example.cache.proto.CacheEntry.newBuilder()
                             .setData(ByteString.copyFrom(result.value.data))
                             .setCreatedAt(result.value.createdAt.toEpochMilli())
                             .setExpiresAt(result.value.expiresAt?.toEpochMilli() ?: 0)
-                            .setVersion(result.value.version)
-                            .build()
+
+                    // Add version if present
+                    result.value.version?.let { domainVersion: DomainVersion ->
+                        val protoVersion: com.example.cache.proto.Version =
+                            com.example.cache.proto.Version.newBuilder()
+                                .setTimestamp(domainVersion.timestamp)
+                                .setNodeId(domainVersion.nodeId)
+                                .build()
+                        entryBuilder.setVersion(protoVersion)
+                    }
+
+                    val entry: com.example.cache.proto.CacheEntry = entryBuilder.build()
 
                     GetResponse.newBuilder()
                         .setStatus(GetResponse.Status.HIT)
@@ -85,6 +96,17 @@ class CacheProtocolHandler<T>(
                 null
             }
 
+        // Convert protobuf version to domain version if present
+        val version: DomainVersion? =
+            if (entry.hasVersion()) {
+                DomainVersion(
+                    timestamp = entry.version.timestamp,
+                    nodeId = entry.version.nodeId,
+                )
+            } else {
+                null
+            }
+
         @Suppress("UNCHECKED_CAST")
         val cacheForBytes = cache as Cache<ByteArray>
         val value =
@@ -92,7 +114,7 @@ class CacheProtocolHandler<T>(
                 data = entry.data.toByteArray(),
                 createdAt = createdAt,
                 expiresAt = expiresAt,
-                version = entry.version,
+                version = version,
             )
 
         val result = cacheForBytes.put(key, value)
