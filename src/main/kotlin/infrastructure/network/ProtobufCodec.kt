@@ -4,6 +4,7 @@ import com.example.cache.proto.DeleteRequest
 import com.example.cache.proto.DeleteResponse
 import com.example.cache.proto.GetRequest
 import com.example.cache.proto.GetResponse
+import com.example.cache.proto.GossipMessage as ProtoGossipMessage
 import com.example.cache.proto.PutRequest
 import com.example.cache.proto.PutResponse
 import io.netty.buffer.ByteBuf
@@ -26,6 +27,7 @@ class ProtobufCodec : ByteToMessageCodec<CacheMessage>() {
         private const val TYPE_PUT_RESPONSE: Byte = 3
         private const val TYPE_DELETE_REQUEST: Byte = 4
         private const val TYPE_DELETE_RESPONSE: Byte = 5
+        private const val TYPE_GOSSIP: Byte = 6
 
         private const val HEADER_SIZE = 5 // 1 byte type + 4 bytes length
     }
@@ -43,6 +45,7 @@ class ProtobufCodec : ByteToMessageCodec<CacheMessage>() {
                 is CacheMessage.Response.Put -> TYPE_PUT_RESPONSE to msg.response.toByteArray()
                 is CacheMessage.Request.Delete -> TYPE_DELETE_REQUEST to msg.request.toByteArray()
                 is CacheMessage.Response.Delete -> TYPE_DELETE_RESPONSE to msg.response.toByteArray()
+                is CacheMessage.Gossip -> TYPE_GOSSIP to msg.message.toByteArray()
             }
 
         out.writeByte(type.toInt())
@@ -91,6 +94,7 @@ class ProtobufCodec : ByteToMessageCodec<CacheMessage>() {
                 TYPE_PUT_RESPONSE -> CacheMessage.Response.Put(PutResponse.parseFrom(bytes))
                 TYPE_DELETE_REQUEST -> CacheMessage.Request.Delete(DeleteRequest.parseFrom(bytes))
                 TYPE_DELETE_RESPONSE -> CacheMessage.Response.Delete(DeleteResponse.parseFrom(bytes))
+                TYPE_GOSSIP -> CacheMessage.Gossip(ProtoGossipMessage.parseFrom(bytes))
                 else -> throw IllegalArgumentException("Unknown message type: $type")
             }
 

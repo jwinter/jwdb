@@ -4,6 +4,7 @@ import com.example.cache.proto.DeleteRequest
 import com.example.cache.proto.DeleteResponse
 import com.example.cache.proto.GetRequest
 import com.example.cache.proto.GetResponse
+import com.example.cache.proto.GossipMessage as ProtoGossipMessage
 import com.example.cache.proto.PutRequest
 import com.example.cache.proto.PutResponse
 
@@ -33,4 +34,9 @@ sealed class CacheMessage {
 
         data class Delete(val response: DeleteResponse) : Response()
     }
+
+    /**
+     * Gossip protocol messages for inter-node communication.
+     */
+    data class Gossip(val message: ProtoGossipMessage) : CacheMessage()
 }

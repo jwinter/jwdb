@@ -101,11 +101,15 @@
 
 ## 8. Network Protocol Extensions
 - [ ] 8.1 Add ReplicationRequest/Response protobuf messages
-- [ ] 8.2 Add GossipRequest/Response protobuf messages
-- [ ] 8.3 Implement inter-node communication handlers in Netty
-- [ ] 8.4 Add connection pooling for replica nodes
-- [ ] 8.5 Handle network failures and retries
-- [ ] 8.6 Add request routing to coordinator
+- [x] 8.2 Add GossipRequest/Response protobuf messages
+- [x] 8.3 Implement NettyGossipTransport for gossip message sending
+- [x] 8.4 Add GossipProtocolHandler to Netty pipeline
+- [x] 8.5 Update CacheMessage sealed class to include gossip messages
+- [x] 8.6 Create ClusterNode orchestrator to wire gossip components
+- [ ] 8.7 Implement inter-node communication handlers for replication
+- [ ] 8.8 Add connection pooling for replica nodes
+- [ ] 8.9 Handle network failures and retries
+- [ ] 8.10 Add request routing to coordinator
 
 ## 9. Configuration
 - [ ] 9.1 Add replication configuration (factor, consistency defaults)
@@ -118,7 +122,7 @@
 - [x] 10.1 Test consistent hashing and token assignment
 - [x] 10.2 Test replica placement with RF=3
 - [x] 10.3 Test virtual node distribution
-- [ ] 10.4 Test gossip state transitions
+- [x] 10.4 Test FailureDetector state transitions (10 tests)
 - [x] 10.5 Test conflict resolution (LWW)
 - [x] 10.6 Test version comparison edge cases
 - [x] 10.7 Test quorum calculation
@@ -127,6 +131,9 @@
 - [x] 10.10 Test ReplicationCoordinator reads with conflict resolution
 - [x] 10.11 Test ReplicationCoordinator deletes
 - [x] 10.12 Test ReplicationConfig validation
+- [ ] 10.13 Test GossipService message handling
+- [ ] 10.14 Test MembershipManager join/leave flows
+- [ ] 10.15 Test NettyGossipTransport message sending
 
 ## 11. Testing - Integration Tests
 - [ ] 11.1 Setup docker-compose for 3-node cluster
