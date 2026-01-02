@@ -70,3 +70,67 @@ message DeleteResponse {
   Status status = 1;        // Result status
   string error_message = 2; // Error message (only present if status = ERROR)
 }
+
+// ========================================
+// Gossip Protocol Messages (SWIM-based)
+// ========================================
+
+// NodeStatus represents the status of a node in the cluster
+enum NodeStatus {
+  ALIVE = 0;                // Node is alive and responsive
+  SUSPECTED = 1;            // Node is suspected of failure
+  DOWN = 2;                 // Node is confirmed down
+  LEAVING = 3;              // Node is gracefully leaving
+  LEFT = 4;                 // Node has left the cluster
+}
+
+// NodeInfo represents information about a cluster node
+message NodeInfo {
+  string id = 1;            // Unique node identifier
+  string address = 2;       // IP address or hostname
+  int32 port = 3;           // Port number
+  NodeStatus status = 4;    // Current node status
+  int64 incarnation = 5;    // Incarnation number for refuting suspicions
+  int64 timestamp = 6;      // Last update timestamp (milliseconds since epoch)
+}
+
+// GossipMessage represents all gossip protocol messages
+message GossipMessage {
+  enum MessageType {
+    PING = 0;               // Heartbeat ping
+    ACK = 1;                // Acknowledgment of ping
+    PING_REQ = 2;           // Indirect ping request
+    SUSPECT = 3;            // Report node as suspected
+    ALIVE = 4;              // Refute suspicion or announce alive
+    CONFIRM = 5;            // Confirm node failure
+    JOIN = 6;               // Request to join cluster
+    JOIN_RESPONSE = 7;      // Response to join request
+    LEAVE = 8;              // Announce graceful departure
+    SYNC = 9;               // Full state synchronization
+  }
+
+  MessageType type = 1;     // Type of gossip message
+  NodeInfo sender = 2;      // Information about the sending node
+  NodeInfo subject = 3;     // Information about the subject node (for SUSPECT, ALIVE, etc.)
+  repeated NodeInfo members = 4; // List of known members (for JOIN_RESPONSE, SYNC)
+  int64 sequence_number = 5; // Sequence number for ordering
+  bytes payload = 6;        // Optional additional payload
+}
+
+// GossipRequest wraps gossip messages for request-response communication
+message GossipRequest {
+  GossipMessage message = 1; // The gossip message
+}
+
+// GossipResponse wraps gossip messages for responses
+message GossipResponse {
+  enum Status {
+    SUCCESS = 0;            // Operation successful
+    ERROR = 1;              // Error occurred
+    REJECTED = 2;           // Request rejected
+  }
+
+  Status status = 1;        // Response status
+  GossipMessage message = 2; // The response gossip message
+  string error_message = 3; // Error message (only present if status = ERROR)
+}

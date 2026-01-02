@@ -19,9 +19,18 @@
 - ✅ SimpleReplicationCoordinator implementation with timeout handling
 - ✅ ReplicationConfig with validation and quorum size calculation
 - ✅ Comprehensive unit tests for consistency levels and coordinator (31 test cases)
+- ✅ SWIM-based gossip protocol with all 8 tasks completed:
+  - ✅ GossipMessage protobuf schema (PING, ACK, PING_REQ, SUSPECT, ALIVE, CONFIRM, JOIN, LEAVE, SYNC)
+  - ✅ FailureDetector with SWIM state machine (NodeState tracking, incarnation numbers)
+  - ✅ GossipService for periodic state exchange (heartbeat, indirect ping, piggybacking)
+  - ✅ Suspicion and failure detection logic (missed heartbeats, timeouts)
+  - ✅ Node join protocol with seed nodes (MembershipManager)
+  - ✅ Node leave protocol for graceful shutdown
+  - ✅ Gossip message propagation and rumor spreading (fanout-based)
+  - ✅ GossipConfig with configurable intervals and timeouts
 
 ### In Progress
-- 🔨 SWIM-based gossip protocol
+- 🔨 Network protocol extensions for inter-node communication
 
 ### Upcoming
 - Hinted handoff
@@ -39,14 +48,14 @@
 - [ ] 1.6 Add token range calculation and assignment
 
 ## 2. Gossip Protocol
-- [ ] 2.1 Define GossipMessage protobuf schema
-- [ ] 2.2 Implement SWIM-based failure detection state machine
-- [ ] 2.3 Create GossipService for periodic state exchange
-- [ ] 2.4 Add suspicion and failure detection logic
-- [ ] 2.5 Implement node join protocol with seed nodes
-- [ ] 2.6 Implement node leave protocol (graceful shutdown)
-- [ ] 2.7 Add gossip message propagation and rumor spreading
-- [ ] 2.8 Configure gossip interval and timeouts
+- [x] 2.1 Define GossipMessage protobuf schema
+- [x] 2.2 Implement SWIM-based failure detection state machine
+- [x] 2.3 Create GossipService for periodic state exchange
+- [x] 2.4 Add suspicion and failure detection logic
+- [x] 2.5 Implement node join protocol with seed nodes
+- [x] 2.6 Implement node leave protocol (graceful shutdown)
+- [x] 2.7 Add gossip message propagation and rumor spreading
+- [x] 2.8 Configure gossip interval and timeouts
 
 ## 3. Versioning and Conflict Detection
 - [x] 3.1 Add Version data class (timestamp + node ID)
