@@ -1,5 +1,7 @@
 # Distributed In-Memory Cache
 
+[![CI](https://github.com/jwinter/distributed-cache/actions/workflows/ci.yml/badge.svg)](https://github.com/jwinter/distributed-cache/actions/workflows/ci.yml)
+
 A high-performance, production-ready distributed in-memory cache written in Kotlin, combining concepts from Apache Cassandra and Couchbase. Built for learning AI LLM-assisted programming with a focus on real-world backend service development.
 
 ## Overview
