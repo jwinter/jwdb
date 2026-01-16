@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.3.0"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
     id("com.google.protobuf") version "0.9.4"
+    jacoco
 }
 
 group = "com.example"
@@ -82,4 +83,41 @@ ktlint {
     filter {
         exclude { projectDir.toURI().relativize(it.file.toURI()).path.contains("/generated/") }
     }
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.named<Test>("testUnit") {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.named<Test>("testIntegration") {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.named<Test>("testE2e") {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    classDirectories.setFrom(
+        files(
+            classDirectories.files.map {
+                fileTree(it) {
+                    exclude("**/proto/**")
+                }
+            },
+        ),
+    )
 }
