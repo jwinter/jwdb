@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.3.0"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
     id("com.google.protobuf") version "0.9.4"
+    id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
 group = "com.example"
@@ -81,5 +82,15 @@ protobuf {
 ktlint {
     filter {
         exclude { projectDir.toURI().relativize(it.file.toURI()).path.contains("/generated/") }
+    }
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                packages("com.example.proto")
+            }
+        }
     }
 }
