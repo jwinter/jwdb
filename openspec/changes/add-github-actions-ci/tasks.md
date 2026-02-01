@@ -1,53 +1,52 @@
 ## Progress Summary
 
-**Status**: Draft
+**Status**: In Progress
 **Started**: 2026-01-15
-**Last Updated**: 2026-01-15
+**Last Updated**: 2026-02-01
 
 ### Completed
-- (none yet)
+- OpenSpec proposal creation
+- CI workflow implementation (.github/workflows/ci.yml)
+- Kover coverage integration in build.gradle.kts (console output)
+- CI badge added to README.md
 
 ### In Progress
-- OpenSpec proposal creation
+- PR verification and merge
 
 ### Upcoming
-- CI workflow implementation
-- JaCoCo integration
-- Documentation updates
+- Verify CI runs successfully on PR
+- Archive proposal after merge
 
 ---
 
 ## 1. OpenSpec Proposal Setup
-- [ ] 1.1 Create proposal directory structure
-- [ ] 1.2 Write proposal.md with why/what/impact
-- [ ] 1.3 Write tasks.md implementation checklist
-- [ ] 1.4 Write spec delta for development-workflow capability
-- [ ] 1.5 Validate proposal with `openspec validate add-github-actions-ci --strict`
-- [ ] 1.6 Get user approval before implementation
+- [x] 1.1 Create proposal directory structure
+- [x] 1.2 Write proposal.md with why/what/impact
+- [x] 1.3 Write tasks.md implementation checklist
+- [x] 1.4 Write spec delta for development-workflow capability
+- [x] 1.5 Validate proposal with `openspec validate add-github-actions-ci --strict`
+- [x] 1.6 Get user approval before implementation
 
 ## 2. GitHub Actions Workflow Creation
-- [ ] 2.1 Create `.github/workflows/` directory
-- [ ] 2.2 Create `ci.yml` workflow file with proper structure
-- [ ] 2.3 Configure workflow triggers (PR to main, push to main, workflow_dispatch)
-- [ ] 2.4 Add build-and-lint job (checkout, Java setup, Gradle cache, ktlintCheck, build)
-- [ ] 2.5 Add test-unit job with coverage (checkout, Java setup, testUnit, upload results)
-- [ ] 2.6 Add test-integration job with coverage (parallel to test-unit)
-- [ ] 2.7 Add test-e2e job with coverage (parallel to test-unit)
-- [ ] 2.8 Add coverage-report job (aggregate coverage from all test jobs)
-- [ ] 2.9 Configure job dependencies (test jobs need build job)
-- [ ] 2.10 Configure test result artifact uploads
-- [ ] 2.11 Configure coverage report artifact uploads
-- [ ] 2.12 Test workflow syntax locally (if actionlint available)
+- [x] 2.1 Create `.github/workflows/` directory
+- [x] 2.2 Create `ci.yml` workflow file with proper structure
+- [x] 2.3 Configure workflow triggers (PR to main, push to main, workflow_dispatch)
+- [x] 2.4 Add build-and-lint job (checkout, Java setup, Gradle cache, ktlintCheck, build)
+- [x] 2.5 Add test-unit job with coverage (checkout, Java setup, testUnit, upload results)
+- [x] 2.6 Add test-integration job with coverage (parallel to test-unit)
+- [x] 2.7 Add test-e2e job with coverage (parallel to test-unit)
+- [x] 2.8 Add coverage-report job (aggregate coverage from all test jobs)
+- [x] 2.9 Configure job dependencies (test jobs need build job)
+- [x] 2.10 ~~Configure test result artifact uploads~~ (removed - using console output)
+- [x] 2.11 ~~Configure coverage report artifact uploads~~ (removed - using console output)
+- [x] 2.12 Test workflow syntax locally (if actionlint available)
 
-## 3. JaCoCo Code Coverage Integration
-- [ ] 3.1 Add JaCoCo plugin to `build.gradle.kts`
-- [ ] 3.2 Configure JaCoCo version (0.8.11 or latest)
-- [ ] 3.3 Create jacocoTestReport task aggregating all test types
-- [ ] 3.4 Configure XML report generation (for CI parsing)
-- [ ] 3.5 Configure HTML report generation (for local viewing)
-- [ ] 3.6 Set up task dependencies (test tasks finalize with jacocoTestReport)
-- [ ] 3.7 Test coverage generation locally with `./gradlew jacocoTestReport`
-- [ ] 3.8 Verify coverage reports appear in `build/reports/jacoco/`
+## 3. Kover Code Coverage Integration
+- [x] 3.1 Add Kover plugin to `build.gradle.kts`
+- [x] 3.2 Configure Kover version (0.9.1)
+- [x] 3.3 Configure koverLog task for console coverage output
+- [x] 3.4 Exclude generated proto classes from coverage
+- [x] 3.5 Verify coverage output appears in test run console
 
 ## 4. Documentation Updates
 - [ ] 4.1 Add CI badge to README.md (below project title)

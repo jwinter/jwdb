@@ -52,23 +52,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run unit tests with coverage
-        run: ./gradlew testUnit jacocoTestReport
-
-      - name: Upload unit test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-results
-          path: build/test-results/testUnit/
-          retention-days: 90
-
-      - name: Upload unit test coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-coverage
-          path: build/reports/jacoco/test/
-          retention-days: 90
+        run: ./gradlew testUnit koverLog
 
   test-integration:
     name: Integration Tests
@@ -90,23 +74,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run integration tests with coverage
-        run: ./gradlew testIntegration jacocoTestReport
-
-      - name: Upload integration test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-test-results
-          path: build/test-results/testIntegration/
-          retention-days: 90
-
-      - name: Upload integration test coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-coverage
-          path: build/reports/jacoco/test/
-          retention-days: 90
+        run: ./gradlew testIntegration koverLog
 
   test-e2e:
     name: End-to-End Tests
@@ -128,58 +96,4 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run e2e tests with coverage
-        run: ./gradlew testE2e jacocoTestReport
-
-      - name: Upload e2e test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-test-results
-          path: build/test-results/testE2e/
-          retention-days: 90
-
-      - name: Upload e2e test coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-coverage
-          path: build/reports/jacoco/test/
-          retention-days: 90
-
-  coverage-report:
-    name: Code Coverage Report
-    runs-on: ubuntu-latest
-    needs: [test-unit, test-integration, test-e2e]
-    if: always()
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download unit coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: unit-coverage
-          path: coverage/unit
-        continue-on-error: true
-
-      - name: Download integration coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: integration-coverage
-          path: coverage/integration
-        continue-on-error: true
-
-      - name: Download e2e coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: e2e-coverage
-          path: coverage/e2e
-        continue-on-error: true
-
-      - name: Upload merged coverage reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-reports
-          path: coverage/
-          retention-days: 90
+        run: ./gradlew testE2e koverLog
