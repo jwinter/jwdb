@@ -41,7 +41,7 @@ This is a Kotlin project for learning AI-assisted programming, with the goal of 
 
 ## Before Starting Any Task:
 1. Read `AGENTS.md` for workflow guidelines
-2. Read `PROJECT_STATUS.md` for current state
+2. Read `README.md` for current state and roadmap
 3. Check `openspec list` for active changes
 4. Check `openspec list --specs` for existing capabilities
 5. Explain your plan and get approval
@@ -163,4 +163,5 @@ Low-latency, high-traffic data store design. Watch for:
 - `openspec/project.md` - Project conventions and tech stack details
 - `openspec/AGENTS.md` - Complete OpenSpec workflow documentation
 - `AGENTS.md` - This file - Development workflow and safety guidelines
-- `PROJECT_STATUS.md` - Current project state
+- `README.md` - Current project state and roadmap
+- `PHASE_2A_REVIEW.md` - Replication work: what's done, what's blocking

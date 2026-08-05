@@ -70,13 +70,22 @@ when (val result = cache.get(CacheKey("user:123"))) {
 
 Possible directions, in roughly the order I'd explore them:
 
-- Single-DC replication — gossip + consistent hashing + tunable consistency
-- Cross-DC replication
-- Durability — WAL + snapshots for crash recovery
+| Phase | Change | Tasks | Status |
+|---|---|---|---|
+| 1 — single node | stats, TTL, protobuf, Netty server | 100/100 | ✅ shipped |
+| 2A — single-DC replication | `add-single-dc-replication` | 28/98 | 🔨 in progress |
+| 2B — cross-DC replication | `add-cross-datacenter-replication` | 0/99 | 📋 proposed |
+| 3 — durability | `add-persistence-layer` | 0/77 | 📋 proposed |
+
+Phase 2A has the domain logic — consistent hashing with virtual nodes, versioning, last-write-wins conflict resolution, and an in-process replication coordinator — but no wire protocol, so nodes can't yet talk to each other. Gossip and inter-node messaging are the critical path. See [PHASE_2A_REVIEW.md](PHASE_2A_REVIEW.md) for a component-level breakdown.
+
+Also proposed, unscheduled: compare-and-swap (`add-cas-support`) and a smart client library (`add-smart-client-library`).
+
+Task counts come from `openspec/changes/*/tasks.md`, which is the source of truth — not this table.
 
 ## Documentation
 
-Deeper docs live in [`docs/`](docs/) (statistics, TTL, serialization, network server, test classification). Specs and ADR-style notes live in [`openspec/`](openspec/).
+Deeper docs live in [`docs/`](docs/) (statistics, TTL, serialization, network server, test classification). Specs, proposals, and roadmap detail live in [`openspec/`](openspec/).
 
 ## Development approach
 
