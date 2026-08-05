@@ -63,52 +63,27 @@ The CI pipeline SHALL execute unit, integration, and end-to-end tests in paralle
 - **AND** results are reported separately
 
 ### Requirement: Code Coverage Reporting
-The CI pipeline SHALL generate and publish code coverage reports using JaCoCo.
+The CI pipeline SHALL report code coverage to the job console using Kover.
 
-#### Scenario: Coverage generated for unit tests
-- **WHEN** unit tests execute
-- **THEN** JaCoCo captures coverage data
-- **AND** coverage report includes unit test execution paths
-- **AND** coverage data is uploaded as an artifact
+#### Scenario: Coverage reported for unit tests
+- **WHEN** the test-unit job runs `testUnit koverLog`
+- **THEN** Kover captures coverage data for unit test execution paths
+- **AND** the coverage summary is printed to the job console output
 
-#### Scenario: Coverage generated for integration tests
-- **WHEN** integration tests execute
-- **THEN** JaCoCo captures coverage data
-- **AND** coverage report includes integration test paths
-- **AND** coverage data is uploaded as an artifact
+#### Scenario: Coverage reported for integration tests
+- **WHEN** the test-integration job runs `testIntegration koverLog`
+- **THEN** Kover captures coverage data for integration test paths
+- **AND** the coverage summary is printed to the job console output
 
-#### Scenario: Coverage generated for e2e tests
-- **WHEN** e2e tests execute
-- **THEN** JaCoCo captures coverage data
-- **AND** coverage report includes e2e test paths
-- **AND** coverage data is uploaded as an artifact
+#### Scenario: Coverage reported for e2e tests
+- **WHEN** the test-e2e job runs `testE2e koverLog`
+- **THEN** Kover captures coverage data for e2e test paths
+- **AND** the coverage summary is printed to the job console output
 
-#### Scenario: Coverage reports aggregated
-- **WHEN** all test jobs complete
-- **THEN** coverage reports are merged into a single report
-- **AND** aggregate coverage is calculated
-- **AND** merged coverage report is published as an artifact
-
-#### Scenario: Coverage reports available in multiple formats
-- **WHEN** coverage reports are generated
-- **THEN** XML format is generated for CI parsing
-- **AND** HTML format is generated for human viewing
-- **AND** both formats are included in artifacts
-
-### Requirement: Test Result Publishing
-The CI pipeline SHALL publish test results as artifacts for debugging and analysis.
-
-#### Scenario: Test results uploaded as artifacts
-- **WHEN** tests execute in any stage
-- **THEN** JUnit XML test results are collected
-- **AND** test results are uploaded as GitHub Actions artifacts
-- **AND** artifacts are retained for 90 days
-
-#### Scenario: Test results accessible from PR
-- **WHEN** a pull request runs CI
-- **THEN** test result artifacts are linked to the PR
-- **AND** developers can download results for analysis
-- **AND** results include pass/fail status for each test
+#### Scenario: Generated code excluded from coverage
+- **WHEN** Kover calculates coverage
+- **THEN** generated Protocol Buffers classes are excluded
+- **AND** the reported percentage reflects hand-written code only
 
 ### Requirement: Strict Quality Gates
 The CI pipeline SHALL fail if any test fails or code style violations are found.
