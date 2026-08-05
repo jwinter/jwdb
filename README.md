@@ -95,5 +95,3 @@ This is a personal learning project, not a product. It exists to get hands-on wi
 - **Distributed systems concepts** — Cassandra- and Couchbase-style patterns for replication, consistency, and topology
 - **Kotlin backend service development** — Netty, Protocol Buffers, modern JVM tooling
 - **Spec-first, AI-assisted development workflows** — specifications managed with [OpenSpec](openspec/), test-driven development with classified unit / integration / e2e tests, functional-core / imperative-shell as the architectural discipline, and ktlint as the style gate
-
-Use, fork, or borrow ideas freely; expect rough edges.
