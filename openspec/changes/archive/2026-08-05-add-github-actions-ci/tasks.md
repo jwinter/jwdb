@@ -62,9 +62,9 @@
 - [x] 6.2 Ensure all tests pass in CI
 - [x] 6.3 Ensure all quality checks pass
 - [x] 6.4 Get final approval from user
-- [ ] 6.5 Merge PR
-- [ ] 6.6 Verify CI runs on main branch after merge
-- [ ] 6.7 Archive proposal with `openspec archive add-github-actions-ci`
+- [x] 6.5 Merge PR
+- [x] 6.6 Verify CI runs on main branch after merge
+- [x] 6.7 Archive proposal with `openspec archive add-github-actions-ci`
 
 ---
 
