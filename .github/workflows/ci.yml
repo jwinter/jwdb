@@ -45,8 +45,8 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Run unit tests with coverage
-        run: ./gradlew testUnit koverLog
+      - name: Run unit tests
+        run: ./gradlew testUnit
 
   test-integration:
     name: Integration Tests
@@ -64,8 +64,8 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Run integration tests with coverage
-        run: ./gradlew testIntegration koverLog
+      - name: Run integration tests
+        run: ./gradlew testIntegration
 
   test-e2e:
     name: End-to-End Tests
@@ -83,5 +83,27 @@ jobs:
           java-version: '21'
           cache: 'gradle'
 
-      - name: Run e2e tests with coverage
-        run: ./gradlew testE2e koverLog
+      - name: Run e2e tests
+        run: ./gradlew testE2e
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      # koverLog depends on every Test task, so it runs the tiered tasks itself. The
+      # default `test` task is excluded because it re-runs the same tests untagged,
+      # which would cover the suite twice in this job.
+      - name: Report aggregate coverage
+        run: ./gradlew koverLog -x test

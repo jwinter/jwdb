@@ -1,15 +1,17 @@
 .PHONY: help build test test-unit test-integration test-e2e clean format check gradle build-docker test-docker check-docker docker-install colima-install colima-start colima-stop colima-status
 .DEFAULT_GOAL := help
 
-# Container runner for hosts without a local JDK. Uses the same JDK as
-# .devcontainer/Dockerfile and keeps the Gradle cache in a named volume so
-# dependencies survive between runs.
+# Container runner for hosts without a local JDK, using the same JDK as
+# .devcontainer/Dockerfile.
+#
+# Commands run via `docker exec` in a long-lived container rather than a fresh
+# `docker run` each time, so the Gradle daemon stays warm between invocations
+# instead of paying JVM and daemon startup on every command. The Gradle cache
+# lives in a named volume so dependencies survive the container being removed.
 JDK_IMAGE ?= eclipse-temurin:21-jdk
 GRADLE_CACHE ?= jwdb-gradle
-DOCKER_GRADLE = docker run --rm \
-	-v "$(CURDIR)":/workspace -w /workspace \
-	-v $(GRADLE_CACHE):/root/.gradle \
-	$(JDK_IMAGE) ./gradlew
+DEV_CONTAINER ?= jwdb-dev
+DOCKER_GRADLE = $(MAKE) --no-print-directory dev-up && docker exec -w /workspace $(DEV_CONTAINER) ./gradlew
 
 ## help: Display available make targets
 help:
@@ -50,9 +52,24 @@ format:
 check:
 	./gradlew ktlintCheck
 
+## dev-up: Start the long-lived build container (idempotent)
+dev-up:
+	@docker inspect -f '{{.State.Running}}' $(DEV_CONTAINER) 2>/dev/null | grep -q true || { \
+		docker rm -f $(DEV_CONTAINER) >/dev/null 2>&1 || true; \
+		docker run -d --name $(DEV_CONTAINER) \
+			-v "$(CURDIR)":/workspace -w /workspace \
+			-v $(GRADLE_CACHE):/root/.gradle \
+			$(JDK_IMAGE) sleep infinity >/dev/null; \
+	}
+
+## dev-down: Stop and remove the build container (Gradle cache volume is kept)
+dev-down:
+	@docker rm -f $(DEV_CONTAINER) >/dev/null 2>&1 || true
+	@echo "Removed $(DEV_CONTAINER) (cache volume $(GRADLE_CACHE) retained)"
+
 ## gradle: Run any Gradle task in a container, e.g. make gradle ARGS="koverVerify"
 gradle:
-	$(DOCKER_GRADLE) $(ARGS)
+	@$(DOCKER_GRADLE) $(ARGS)
 
 ## build-docker: Build the project in a container
 build-docker:
