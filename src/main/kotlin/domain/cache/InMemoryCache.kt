@@ -237,7 +237,7 @@ class InMemoryCache<T>(
         cleanupExecutor?.scheduleAtFixedRate(
             {
                 try {
-                    runCleanup()
+                    runCleanupCycle()
                 } catch (e: Exception) {
                     // Log error but don't let it stop the scheduled task
                     System.err.println("Error during cache cleanup: ${e.message}")
@@ -250,14 +250,26 @@ class InMemoryCache<T>(
     }
 
     /**
-     * Runs a single cleanup cycle.
+     * Runs a single cleanup cycle: removes expired entries and records cleanup metrics.
+     *
+     * This is what the background task invokes on each tick. It is `internal` rather than
+     * private so tests can drive cleanup deterministically instead of waiting for the
+     * scheduler; callers wanting on-demand reclamation should use [removeExpired].
      */
-    private fun runCleanup() {
+    internal fun runCleanupCycle() {
         val removed = removeExpired()
         expiredEntriesRemoved.addAndGet(removed.toLong())
         cleanupCount.incrementAndGet()
         lastCleanupTime = System.currentTimeMillis()
     }
+
+    /**
+     * Whether the background cleanup task is still scheduled.
+     *
+     * `internal` so tests can assert directly that [shutdown] stopped the task, rather than
+     * waiting out an interval to infer it from the absence of further cleanups.
+     */
+    internal fun isCleanupTaskRunning(): Boolean = cleanupExecutor?.isShutdown == false
 
     /**
      * Stops the background cleanup task and releases resources.
