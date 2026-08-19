@@ -2,6 +2,11 @@
 
 This project uses a three-tier test classification system to organize tests by scope and dependencies.
 
+> **Planned rename:** these tiers are moving to Google-style **small / medium / large**,
+> which classifies by dependencies and speed rather than test shape. The tags below are
+> what the build uses today — keep using them until the rename lands. Background in
+> [IDEAS.md](IDEAS.md) item 4.
+
 ## Test Types
 
 ### Unit Tests (`@Tag("unit")`)

@@ -1,4 +1,4 @@
-.PHONY: help build test test-unit test-integration test-e2e clean format check gradle build-docker test-docker check-docker docker-install colima-install colima-start colima-stop colima-status
+.PHONY: help build run test test-one test-unit test-integration test-e2e clean format check gradle build-docker test-docker check-docker docker-install colima-install colima-start colima-stop colima-status
 .DEFAULT_GOAL := help
 
 # Container runner for hosts without a local JDK, using the same JDK as
@@ -24,9 +24,18 @@ help:
 build:
 	./gradlew build
 
+## run: Run the application
+run:
+	./gradlew run
+
 ## test: Run all tests
 test:
 	./gradlew test
+
+## test-one: Run a single test, e.g. make test-one TEST=ClassName.testName
+test-one:
+	@test -n "$(TEST)" || { echo "usage: make test-one TEST=ClassName.testName"; exit 1; }
+	./gradlew test --tests '$(TEST)'
 
 ## test-unit: Run unit tests only
 test-unit:
