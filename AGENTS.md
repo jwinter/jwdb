@@ -17,136 +17,82 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
+# Current Focus
+
+Before adding more distributed-systems features (long form in [docs/IDEAS.md](docs/IDEAS.md)):
+1. Exercise the db through an external client / CLI — commit to a real protocol boundary first
+2. `make test` that stands up docker-compose with all test dependencies
+3. Add detekt alongside ktlint now, while the findings list is still small
+
+If asked "what's next," prefer these over Phase 2A replication work, and say so if the
+roadmap in `README.md` or `openspec/` disagrees.
+
+**Remind me of this Current Focus at the start of each session**, and again whenever a
+task would start new work outside these three. One or two lines is enough — don't recite
+the whole list every message.
+
 # Project Overview
 
 This is a Kotlin project for learning AI-assisted programming, with the goal of building a distributed in-memory cache with cross-datacenter replication (combining concepts from Apache Cassandra and Couchbase).
 
-**Tech Stack:**
-- Kotlin 2.3.0 with Kotlin DSL
-- JVM: Temurin Java 21
-- Testing: JUnit 5
-- Code quality: ktlint
-- Build system: Gradle
+Tech stack, architecture, and conventions live in `openspec/project.md` — read it rather
+than relying on a copy here.
 
 # The Basics
-1. Safety is the highest priority. Do not take any action without a human user's approval.
-2. Explain your plan first before executing
-3. Work incrementally in very small steps, DO NOT make changes larger than 20 lines of code or 3 files without approval. Then stop and wait for approval from a human.
-4. Work incrementally in small steps on docs, DO NOT make changes larger than 100 lines or 2 files without approval
-5. Write one small failing test first, then implement
-6. Strive for succinctness and accuracy in documentation
-7. Focus on clarity of code
+
+Each rule is stated once, here. Nowhere else in this file restates them.
+
+1. Safety is the highest priority. Take no action without a human's approval.
+2. Explain your plan before executing, then stop and wait for approval.
+3. Write one small failing test first, then implement.
+4. Work incrementally: max 20 lines of code or 3 files per step. For docs, max 100 lines
+   or 2 files. Larger than that, stop and ask.
+5. After each step, explain what was done, suggest the next small step, and wait.
+6. Favor clarity in code and succinctness in docs.
 
 # Development Workflow
 
-## Before Starting Any Task:
-1. Read `AGENTS.md` for workflow guidelines
-2. Read `README.md` for current state and roadmap
-3. Check `openspec list` for active changes
-4. Check `openspec list --specs` for existing capabilities
-5. Explain your plan and get approval
+## Before Starting Any Task
+1. Read `README.md` for current state and roadmap
+2. Check `openspec list` for active changes, `openspec list --specs` for capabilities
 
-## During Development:
-- Write one failing test then wait for human approval
-- Max 20 lines of code changes
-- Max 3 files modified
-- Write tests first
-- Focus on clarity
-
-## After Each Step:
-- Explain what was done
-- Ask for approval to continue
-- Suggest next small step
+Then The Basics apply: plan, approval, one failing test.
 
 ## Development Commands
 
-### Building and Running
-```bash
-./gradlew build          # Build the project
-./gradlew run            # Run the application
-./gradlew clean          # Clean build artifacts
-```
+Run `make help` for the full target list — it is generated from the Makefile, so it cannot
+go stale. Prefer `make` over raw `./gradlew` so local runs match CI.
 
-### Testing
-```bash
-./gradlew test           # Run all tests
-./gradlew test --tests ClassName.testName  # Run a single test
-```
+Beyond the obvious `build` / `test` / `format` / `check`: `test-unit`, `test-integration`,
+and `test-e2e` run one test size at a time; `dev-up` / `dev-down` manage a long-lived JDK
+container, and `build-docker` / `test-docker` / `check-docker` run Gradle inside it for
+hosts without a local JDK.
 
-### Code Quality
-```bash
-./gradlew ktlintCheck    # Check code style
-./gradlew ktlintFormat   # Auto-format code
-```
+A DevContainer is also configured, on Temurin JDK 21.
 
-### DevContainer
-This project uses a DevContainer for consistent development environments. The container is configured to use Temurin JDK 21.
+# Architecture and Testing
 
-# Architecture
+Package structure (`domain/` and `infrastructure/`), the functional-core / imperative-shell
+design philosophy, code style, and the standing constraints are all specified in
+`openspec/project.md`.
 
-## Package Structure (Hybrid Approach)
-- `domain/` - Feature-based organization for pure business logic (cache, replication, consistency)
-- `infrastructure/` - Layer-based organization for I/O boundaries (network, persistence, monitoring)
+Tests are classified with JUnit 5 tags, currently `@Tag("unit")`, `@Tag("integration")`,
+`@Tag("e2e")` — wired to the `test-unit` / `test-integration` / `test-e2e` targets via
+`includeTags` in `build.gradle.kts`. See `docs/TEST_CLASSIFICATION.md` for which tag a new
+test belongs in. Tests mirror the source structure.
 
-## Design Philosophy
-**Functional core, imperative shell**: Pure functions at the core with imperative I/O at the boundaries (Gary Bernhardt's approach). Keep business logic pure and side effects at the boundaries.
+**The project is moving to Google-style small / medium / large** (classifying by
+dependencies and speed, not test shape) — see `docs/IDEAS.md` item 4. Until that rename
+lands, keep using the existing tags; don't half-migrate a single file.
 
-## Testing Strategy
-Follow **Google-style test classification**:
-- **Small tests**: Fast, isolated unit tests (< 1 second)
-- **Medium tests**: Integration tests with some dependencies (< 1 minute)
-- **Large tests**: End-to-end tests with full system dependencies
-
-Tests should mirror the source structure and use JUnit 5.
-
-# OpenSpec Workflow
-
-This project uses OpenSpec for spec-driven development. Key points:
-
-## When to Create a Proposal
-Create a proposal (`openspec/changes/[change-id]/`) for:
-- New features or capabilities
-- Breaking changes (API, schema, architecture)
-- Performance optimizations that change behavior
-- Security pattern updates
-
-**Skip proposals for**: Bug fixes, typos, formatting, dependency updates, configuration changes.
-
-## Implementation Workflow
-1. Review existing specs in `openspec/specs/`
-2. For new changes, scaffold proposal in `openspec/changes/[change-id]/`
-3. Create `proposal.md`, `tasks.md`, and spec deltas
-4. Run `openspec validate [change-id] --strict`
-5. Get approval before implementation
-6. Implement tasks sequentially, updating checklist
-7. After deployment, archive with `openspec archive <change-id>`
-
-## Important OpenSpec Commands
-```bash
-openspec list                  # List active changes
-openspec list --specs          # List specifications
-openspec show [item]           # Display change or spec
-openspec validate [item] --strict  # Validate changes
-openspec archive <change-id>   # Archive after deployment
-```
+The OpenSpec workflow (when to write a proposal, scaffolding, validation, archiving) is
+documented in `openspec/AGENTS.md`, which the block at the top of this file already tells
+you to open. Do not duplicate it here.
 
 # Development Guidelines
 
-## Code Changes
-- Work incrementally: max 20 lines of code or 3 files per step
-- Write one small failing test first, then implement
-- Explain your plan before executing
-- Wait for human approval between steps
-
-## Code Style
-- Follow official Kotlin style guide
-- Use ktlint for formatting (enforced via Gradle)
-- Standard Kotlin naming conventions
-
-## Important Constraints
-- Stability is more important than performance
-- Must compile on Temurin JVM Java 21
-- Avoid over-engineering - default to <100 lines of new code
+## Judgment
+- Avoid over-engineering — default to <100 lines of new code
 - Single-file implementations until proven insufficient
 - Choose boring, proven patterns
 
@@ -158,10 +104,11 @@ Low-latency, high-traffic data store design. Watch for:
 
 # Key Files
 
-- `build.gradle.kts` - Build configuration with Kotlin, JUnit 5, and ktlint
-- `settings.gradle.kts` - Project settings
-- `openspec/project.md` - Project conventions and tech stack details
+- `Makefile` - Every common task; `make help` lists them
+- `build.gradle.kts` - Build configuration with Kotlin, JUnit 5, ktlint, and test tags
+- `openspec/project.md` - Tech stack, architecture, code style, constraints
 - `openspec/AGENTS.md` - Complete OpenSpec workflow documentation
-- `AGENTS.md` - This file - Development workflow and safety guidelines
 - `README.md` - Current project state and roadmap
+- `docs/IDEAS.md` - Directions not yet turned into proposals (see Current Focus above)
+- `docs/TEST_CLASSIFICATION.md` - Which tag a new test belongs in
 - `PHASE_2A_REVIEW.md` - Replication work: what's done, what's blocking

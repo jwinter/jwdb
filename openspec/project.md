@@ -29,6 +29,9 @@ This project is designed to learn AI LLM-assisted programming with a focus on Ko
   - Small: Fast, isolated unit tests
   - Medium: Integration tests with some dependencies
   - Large: End-to-end tests with full system dependencies
+- **Migration in progress**: the code currently tags tests `unit` / `integration` / `e2e`
+  (see `build.gradle.kts` and `docs/TEST_CLASSIFICATION.md`). Small/medium/large is the
+  target, not the current state. New tests use the existing tags until the rename lands.
 - Test types: Both unit and integration tests required
 - Test organization: Mirror source structure
 - Testing framework: JUnit 5
@@ -61,6 +64,20 @@ This is a low-latency, high-traffic data store designed to handle many concurren
 ## Implementation Roadmap
 
 This project follows a phased approach, building from single-node to distributed system.
+
+### Current Focus (ahead of the phases below)
+
+Three testing changes come before any more distributed-systems work. Long form in
+`docs/IDEAS.md`; summary in `AGENTS.md`.
+
+1. **External client / CLI** — exercise the db from outside to force a real protocol
+   boundary while it is still cheap to change
+2. **`make test` on docker-compose** — one command that stands up a container with all
+   test dependencies
+3. **Static analysis early** — detekt alongside ktlint, behind one make target, same
+   locally and in CI
+
+Phase 2A is paused until these land.
 
 ### Phase 1: Single-Node Production Ready
 Build a production-quality single-node cache with comprehensive observability and automatic management.
